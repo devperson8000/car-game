@@ -11,16 +11,16 @@ const smooth=(rate,dt)=>1-Math.exp(-rate*dt);
 const WEATHER=['clear','golden','rain','night'];
 const CAMERAS=['CHASE','HOOD','COCKPIT'];
 let track,world,car,physics=new DrivingPhysics(),audio=new EngineAudio();
-let ready=false,playing=false,paused=false,requested=false,weather='clear',camMode=0,showMap=true,quality=localStorage.getItem('apex-quality')||'high',assist=true;
+let ready=false,playing=false,paused=false,requested=false,weather='clear',camMode=0,showMap=true,quality=localStorage.getItem('apex-quality')||(matchMedia('(pointer:coarse)').matches||navigator.hardwareConcurrency<=4?'low':'medium'),assist=true;
 let lastFrame=performance.now(),accumulator=0,prevPadCamera=false,toastTimeout=0,lastHud=0,lastMap=0,showModel=false;
 const keys=new Set(),touch={left:false,right:false,throttle:false,brake:false};
 let steerPad=0,throttlePad=0,brakePad=0,handbrakePad=false;
-const renderer=new THREE.WebGLRenderer({antialias:true,powerPreference:'high-performance',alpha:false});
-renderer.setPixelRatio(Math.min(devicePixelRatio,quality==='low'?1:quality==='medium'?1.35:1.8));
+const renderer=new THREE.WebGLRenderer({antialias:quality==='high',powerPreference:'high-performance',alpha:false});
+renderer.setPixelRatio(Math.min(devicePixelRatio,quality==='low'?.8:quality==='medium'?1:1.4));
 renderer.setSize(innerWidth,innerHeight);
 renderer.outputColorSpace=THREE.SRGBColorSpace;
 renderer.toneMapping=THREE.ACESFilmicToneMapping;renderer.toneMappingExposure=1.25;
-renderer.shadowMap.enabled=quality!=='low';renderer.shadowMap.type=THREE.PCFSoftShadowMap;
+renderer.shadowMap.enabled=quality==='high';renderer.shadowMap.type=THREE.PCFSoftShadowMap;
 renderer.setClearColor(0x96bed4);
 $('game').appendChild(renderer.domElement);
 const scene=new THREE.Scene();scene.fog=new THREE.FogExp2(0x9fbbca,.00024);
@@ -28,15 +28,15 @@ const camera=new THREE.PerspectiveCamera(64,innerWidth/innerHeight,.08,11500);
 const hemi=new THREE.HemisphereLight(0xe5f3ff,0x596746,2.25);scene.add(hemi);
 const ambient=new THREE.AmbientLight(0xb2cad5,.37);scene.add(ambient);
 const sunlight=new THREE.DirectionalLight(0xfff4db,3.4);
-sunlight.position.set(170,290,95);sunlight.castShadow=quality!=='low';
-sunlight.shadow.mapSize.set(quality==='high'?2048:1024,quality==='high'?2048:1024);
+sunlight.position.set(170,290,95);sunlight.castShadow=quality==='high';
+sunlight.shadow.mapSize.set(quality==='high'?1024:512,quality==='high'?1024:512);
 sunlight.shadow.camera.left=-95;sunlight.shadow.camera.right=95;
 sunlight.shadow.camera.top=95;sunlight.shadow.camera.bottom=-95;
 sunlight.shadow.camera.near=.5;sunlight.shadow.camera.far=950;
 sunlight.shadow.bias=-.0003;sunlight.shadow.normalBias=.035;scene.add(sunlight,sunlight.target);
 try{
- const env=new THREE.PMREMGenerator(renderer).fromScene(new RoomEnvironment(),.05);
- scene.environment=env.texture;scene.environmentIntensity=.56;
+ if(quality==='high'){const env=new THREE.PMREMGenerator(renderer).fromScene(new RoomEnvironment(),.05);
+ scene.environment=env.texture;scene.environmentIntensity=.56;}
 }catch(err){console.warn('Reflections fallback:',err);}
 const skyUniforms={top:{value:new THREE.Color('#548cac')},horizon:{value:new THREE.Color('#d7e5df')},bottom:{value:new THREE.Color('#829eae')},sunAngle:{value:.6}};
 const sky=new THREE.Mesh(new THREE.SphereGeometry(8200,32,16),new THREE.ShaderMaterial({
@@ -45,7 +45,7 @@ const sky=new THREE.Mesh(new THREE.SphereGeometry(8200,32,16),new THREE.ShaderMa
  fragmentShader:'varying vec3 vDir;uniform vec3 top;uniform vec3 horizon;uniform vec3 bottom;void main(){float t=normalize(vDir).y;vec3 col=t>0.0?mix(horizon,top,pow(clamp(t,0.0,1.0),0.65)):mix(horizon,bottom,clamp(-t*2.0,0.0,1.0));gl_FragColor=vec4(col,1.0);}',
  side:THREE.BackSide,depthWrite:false
 }));sky.renderOrder=-500;scene.add(sky);
-const rainCount=920,rainGeo=new THREE.BufferGeometry(),rainPositions=new Float32Array(rainCount*6);
+const rainCount=540,rainGeo=new THREE.BufferGeometry(),rainPositions=new Float32Array(rainCount*6);
 rainGeo.setAttribute('position',new THREE.BufferAttribute(rainPositions,3));
 const rain=new THREE.LineSegments(rainGeo,new THREE.LineBasicMaterial({color:0xcde2e9,transparent:true,opacity:.28,depthWrite:false}));
 rain.frustumCulled=false;rain.visible=false;scene.add(rain);
@@ -165,8 +165,8 @@ function updateHUD(){
  rpmSegments.forEach((el,i)=>{const active=i<Math.round(physics.rpm/7900*25);el.className=active?(i>20?'active red':'active'):'';});
 }
 function configureQuality(){
- renderer.setPixelRatio(Math.min(devicePixelRatio,quality==='low'?1:quality==='medium'?1.35:1.8));
- renderer.shadowMap.enabled=quality!=='low';sunlight.castShadow=quality!=='low';
+ renderer.setPixelRatio(Math.min(devicePixelRatio,quality==='low'?.8:quality==='medium'?1:1.4));
+ renderer.shadowMap.enabled=quality==='high';sunlight.castShadow=quality==='high';
  $('qualitySelect').value=quality;localStorage.setItem('apex-quality',quality);
 }
 $('qualitySelect').addEventListener('change',e=>{quality=e.target.value;configureQuality();notify('GRAPHICS UPDATED — RELOAD FOR NEW TREE DENSITY');});
@@ -177,7 +177,7 @@ $('menuBtn').addEventListener('click',()=>setPause(!paused));
 $('resumeBtn').addEventListener('click',()=>setPause(false));
 $('resetBtn').addEventListener('click',()=>{reset();setPause(false);});
 $('weatherBtn').addEventListener('click',changeWeather);
-$('startBtn').addEventListener('click',async()=>{requested=true;try{await audio.start();}catch(err){console.warn('Audio permission:',err);}if(ready)begin();else $('loadStatus').textContent='WAITING FOR CIRCUIT DATA…';});
+$('startBtn').addEventListener('click',()=>{requested=true;audio.start().catch(err=>console.warn('Audio unavailable:',err));if(ready)begin();else $('loadStatus').textContent='WAITING FOR CIRCUIT DATA…';});
 function begin(){if(!ready)return;playing=true;paused=false;$('splash').classList.add('hidden');$('hud').classList.remove('hidden');$('pause').classList.add('hidden');notify('WELCOME TO THE NORDSCHLEIFE');}
 window.addEventListener('keydown',e=>{
  if(['ArrowUp','ArrowDown','ArrowLeft','ArrowRight','Space'].includes(e.code))e.preventDefault();
@@ -217,13 +217,13 @@ async function bootstrap(){
 bootstrap().catch(err=>{console.error(err);$('loadStatus').textContent='UNABLE TO INITIALISE GAME. PLEASE RELOAD.';progress(0,'INITIALISATION ERROR');});
 function frame(now){
  requestAnimationFrame(frame);
- const elapsed=clamp((now-lastFrame)/1000,0,.07);lastFrame=now;
+ const elapsed=clamp((now-lastFrame)/1000,0,.5);lastFrame=now;
  readGamepad();
  if(ready&&!paused&&playing){
-  accumulator=Math.min(.12,accumulator+elapsed);
+  accumulator=Math.min(.55,accumulator+elapsed);
   let steps=0;const input=controls();
   // fixed 90Hz physics updates for a consistent, responsive feel
-  while(accumulator>=1/90&&steps<8){physics.step(1/90,input,track,weather,assist);accumulator-=1/90;steps++;}
+  while(accumulator>=1/90&&steps<46){physics.step(1/90,input,track,weather,assist);accumulator-=1/90;steps++;}
   car.update(physics,elapsed,weather);audio.update(physics,weather,false);
  }else if(ready){car.update(physics,0,weather);audio.update(physics,weather,true);accumulator=0;}
  if(ready){
