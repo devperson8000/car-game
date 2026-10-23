@@ -69,10 +69,10 @@ export function createTrackWorld(scene,track,quality='high'){
  let xmin=Infinity,xmax=-Infinity,zmin=Infinity,zmax=-Infinity;
  for(const [x,y,z] of pts){xmin=Math.min(xmin,x);xmax=Math.max(xmax,x);zmin=Math.min(zmin,z);zmax=Math.max(zmax,z);}
  const pad=350,xmid=(xmin+xmax)/2,zmid=(zmin+zmax)/2,wx=(xmax-xmin)+pad*2,wz=(zmax-zmin)+pad*2;
- const slices=quality==='low'?76:quality==='medium'?105:142;
+ const slices=quality==='low'?48:quality==='medium'?74:110;
  const geo=new THREE.PlaneGeometry(wx,wz,slices,slices);geo.rotateX(-PI/2);
  const vertex=geo.attributes.position;
- const cloud=[];for(let i=0;i<n;i+=Math.max(1,Math.floor(n/420))){const p=pts[i];cloud.push(p);}
+ const cloud=[];for(let i=0;i<n;i+=Math.max(1,Math.floor(n/320))){const p=pts[i];cloud.push(p);}
  for(let i=0;i<vertex.count;i++){
   const x=vertex.getX(i)+xmid,z=vertex.getZ(i)+zmid;
   let best=Infinity,height=pts[0][1];
@@ -101,7 +101,7 @@ export function createTrackWorld(scene,track,quality='high'){
  const postMesh=new THREE.InstancedMesh(railGeometry,new THREE.MeshStandardMaterial({color:0x7c8385,metalness:.6,roughness:.6}),railPosts.length);
  const dummy=new THREE.Object3D();railPosts.forEach((p,i)=>{dummy.position.set(...p);dummy.updateMatrix();postMesh.setMatrixAt(i,dummy.matrix);});postMesh.instanceMatrix.needsUpdate=true;world.add(postMesh);
  // Instanced trees: realistic irregular forest silhouette without one draw-call per tree.
- const treeCount=quality==='low'?1500:quality==='medium'?2800:4400;
+ const treeCount=quality==='low'?650:quality==='medium'?1700:2900;
  const tops=new THREE.InstancedMesh(new THREE.ConeGeometry(1,1,7),new THREE.MeshStandardMaterial({color:0x456d42,roughness:1}),treeCount);
  const trunks=new THREE.InstancedMesh(new THREE.CylinderGeometry(.12,.18,1,5),new THREE.MeshStandardMaterial({color:0x51402e,roughness:1}),treeCount);
  const treeColor=new THREE.Color();const mat=new THREE.Matrix4();
