@@ -224,11 +224,11 @@ function frame(now){
   let steps=0;const input=controls();
   // fixed 90Hz physics updates for a consistent, responsive feel
   while(accumulator>=1/90&&steps<8){physics.step(1/90,input,track,weather,assist);accumulator-=1/90;steps++;}
-  car.update(physics,elapsed);audio.update(physics,weather,false);
- }else if(ready){car.update(physics,0);audio.update(physics,weather,true);accumulator=0;}
+  car.update(physics,elapsed,weather);audio.update(physics,weather,false);
+ }else if(ready){car.update(physics,0,weather);audio.update(physics,weather,true);accumulator=0;}
  if(ready){
   updateCamera(elapsed);updateRain(elapsed);
-  sunlight.position.set(camera.position.x+165,physics.y+280,camera.position.z+96);
+  sunlight.position.set(camera.position.x+(weather==='golden'?-280:165),physics.y+(weather==='golden'?65:280),camera.position.z+96);
   sunlight.target.position.set(physics.x,physics.y,physics.z);
   sunlight.target.updateMatrixWorld();
   if(now-lastHud>85){if(playing)updateHUD();lastHud=now;}
