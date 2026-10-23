@@ -1,0 +1,36 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#080c12"><meta name="description" content="APEX — a realistic 3D Nürburgring driving experience">
+<link rel="icon" href="./favicon.svg" type="image/svg+xml">
+<title>APEX — Nürburgring Drive</title>
+<link rel="stylesheet" href="./style.css">
+<script type="importmap">
+{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.173.0/build/three.module.js","three/addons/":"https://cdn.jsdelivr.net/npm/three@0.173.0/examples/jsm/"}}
+</script>
+</head>
+<body>
+<div id="game"></div>
+<div id="vignette"></div>
+<div id="hud" class="hidden">
+  <div class="topbar">
+    <div class="brand"><div class="symbol">A<span>∧</span></div><div><b>APEX</b><small>NÜRBURGRING DRIVE</small></div></div>
+    <div class="topcenter"><div class="toplabel">NORDSCHLEIFE <span class="topdot"></span> FREEDRIVE</div><div id="lapProgress">0.0 / 20.7 KM</div></div>
+    <div class="topright"><span id="weatherText">CLEAR SKY</span><span class="sep"></span><button id="cameraBtn" title="Switch camera (C)">CAM <b id="cameraName">CHASE</b></button><button id="menuBtn" title="Pause menu (Escape)">Ⅱ</button></div>
+  </div>
+  <div class="crosshair"></div>
+  <div class="bottomhud">
+    <div class="driveinfo"><span class="minor-label">DRIVE TELEMETRY</span><div class="steer-line"><span>GRIP</span><div class="meter"><div id="gripFill"></div></div><strong id="gripText">100%</strong></div><div class="steer-line"><span>THROTTLE</span><div class="meter"><div id="throttleFill"></div></div><strong id="throttleText">0%</strong></div><div class="assist"><span id="tcsStatus">TCS ON</span><span id="absStatus">ABS ON</span><span id="surfaceStatus">ASPHALT</span></div></div>
+    <div class="speedunit"><div class="rpm-label">ENGINE <span id="rpmText">900 RPM</span></div><div id="rpmBars" class="rpm-bars"></div><div class="speedline"><span id="speedValue">0</span><div class="units"><span>KM/H</span><b id="gearValue">N</b></div></div><div id="speedTip">PRESS W TO ACCELERATE</div></div>
+    <div class="mapcard" id="mapCard"><div class="maphead"><span>TRACK POSITION</span><span id="trackPercent">0%</span></div><canvas id="minimap" width="270" height="180"></canvas><div class="mapfoot"><span>20.7 KM</span><span>EIFEL, GERMANY</span></div></div>
+  </div>
+  <div id="toast" aria-live="polite"></div>
+  <div class="touch-controls"><div class="touch-steer"><button class="touch" data-control="left" aria-label="Steer left">◀</button><button class="touch" data-control="right" aria-label="Steer right">▶</button></div><div class="touch-pedals"><button class="touch brake" data-control="brake" aria-label="Brake">BRAKE</button><button class="touch accelerator" data-control="throttle" aria-label="Accelerate">GAS</button></div></div>
+</div>
+<div id="splash" class="splash"><div class="hero-top"><div class="brand"><div class="symbol">A<span>∧</span></div><div><b>APEX</b><small>THE DRIVING EXPERIENCE</small></div></div><div class="edition">NORDSCHLEIFE / 2026</div></div><div class="hero-content"><div class="eyebrow"><i></i> THE ULTIMATE DRIVING PLAYGROUND</div><h1>FEEL THE<br><em>EDGE.</em></h1><p>20.7 kilometres of asphalt. Over 150 corners.<br>One machine. No distractions.</p><button id="startBtn" class="primary">ENTER DRIVE <span>↗</span></button><div id="loadStatus">INITIALISING SIMULATION...</div></div><div class="hero-footer"><span>REAL ROAD GEOMETRY</span><span>RESPONSIVE HANDLING</span><span>IMMERSIVE 3D SOUND</span></div></div>
+<div id="pause" class="pause hidden"><div class="pause-panel"><div class="eyebrow">APEX / DRIVER MENU</div><h2>PAUSED<span>.</span></h2><button id="resumeBtn" class="primary">RESUME DRIVE ↗</button><div class="option"><label for="qualitySelect">GRAPHICS</label><select id="qualitySelect"><option value="high">HIGH / QUALITY</option><option value="medium">MEDIUM / BALANCED</option><option value="low">LOW / PERFORMANCE</option></select></div><div class="option"><label for="volumeInput">AUDIO</label><input id="volumeInput" type="range" min="0" max="100" value="65"></div><div class="option"><label for="assistSelect">TRACTION CONTROL</label><select id="assistSelect"><option value="on">ON</option><option value="off">OFF</option></select></div><div class="menubuttons"><button id="resetBtn">RESET TO TRACK</button><button id="weatherBtn">CHANGE WEATHER</button></div><p class="hint">WASD / ARROWS — DRIVE · SPACE — HANDBRAKE<br>C — CAMERA · N — WEATHER · R — RESET · ESC — MENU<br>GAMEPAD AND TOUCH CONTROLS SUPPORTED</p><p class="credits">TRACK © OPENSTREETMAP CONTRIBUTORS · CAR © KHRONOS GROUP<br>NOT AFFILIATED WITH NÜRBURGRING OR ITS OWNERS</p></div></div>
+<div id="loading" class="loadbar"><span id="loadingText">PREPARING THE CIRCUIT</span><div class="loadtrack"><div id="loadingFill"></div></div></div>
+<script type="module" src="./game.js"></script>
+</body>
+</html>
