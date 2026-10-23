@@ -1,0 +1,1 @@
+{"name":"apex-nordschleife-drive","version":"1.0.1","private":true,"type":"module","scripts":{"dev":"vite --host 0.0.0.0","build":"vite build","preview":"vite preview --host 0.0.0.0"},"dependencies":{"three":"0.173.0"},"devDependencies":{"vite":"7.1.7"}}
