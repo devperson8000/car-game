@@ -71,8 +71,7 @@ export class DrivingPhysics{
   let accel=effectiveForce-drag-rolling;
   if(this.shiftDelay>0)accel-=effectiveForce*.72;
   const brakeMax=Math.min(this.brake*(this.offroad?5.8:10.5),maxGripAcceleration*1.14);
-  if(speedAbs>.08)accel-=Math.sign(this.speed)*brakeMax;
-  else if(this.brake>.4&&this.throttle<.1){this.speed=Math.max(-11,this.speed-dt*2.7);}
+  if(this.brake>.3&&this.speed<.45&&this.throttle<.15){\n   // Hold S at a stop to select reverse. The same pedal brakes when moving forward.\n   accel-=this.brake*3.15;\n  }else if(speedAbs>.08){accel-=Math.sign(this.speed)*brakeMax;}
   if(this.handbrake>.1)accel-=Math.sign(this.speed)*this.handbrake*5;
   if(speedAbs<.15&&this.throttle<.03&&this.brake<.2){this.speed=0;accel=0;}
   this.speed=clamp(this.speed+accel*dt,-11,92);
