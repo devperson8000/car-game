@@ -40,6 +40,14 @@ export function createCar(scene){
    for(let i=0;i<5;i++){const spoke=new THREE.Mesh(spokeGeo,alloy);spoke.position.x=x>0?.137:-.137;spoke.rotation.x=i*Math.PI*2/5;pivot.add(spoke);}
    wheels.push({spin:pivot,steer:z>0});
  }
+ // Low beam lights illuminate the road at night and in wet conditions.
+ const headlights=[];
+ for(const side of [-1,1]){
+  const beam=new THREE.SpotLight(0xe5f0ff,0,80,.23,.5,1.5);
+  beam.position.set(side*.67,.85,2.25);
+  beam.target.position.set(side*.57,-.3,35);
+  root.add(beam,beam.target);headlights.push(beam);
+ }
  let loaded=false,remoteWheels=[],wheelRotations=[];
  const loader=new GLTFLoader();
  const loadedPromise=new Promise(resolve=>{
@@ -70,12 +78,13 @@ export function createCar(scene){
   },undefined,err=>{console.warn('External car model unavailable; procedural GT enabled',err);resolve(false);});
  });
  let oldWheelSpin=0;
- function update(physics,dt){
+ function update(physics,dt,weather='clear'){
   root.position.set(physics.x,physics.y+.10,physics.z);
   root.rotation.y=physics.yaw;
   suspension.rotation.order='YXZ';
   suspension.rotation.x=physics.pitch*.65; suspension.rotation.z=physics.roll*.66;
   suspension.position.y=Math.sin(physics.wheelSpin*.7)*.004;
+  headlights.forEach(light=>{light.intensity=weather==='night'?36:weather==='rain'?10:0;});
   const spinDelta=physics.wheelSpin-oldWheelSpin;oldWheelSpin=physics.wheelSpin;
   for(const w of wheels){
    if(w.steer)w.spin.rotation.y=physics.steerAngle*.9;
