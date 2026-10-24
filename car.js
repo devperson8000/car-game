@@ -48,7 +48,7 @@ export function createCar(scene){
   beam.target.position.set(side*.57,-.3,35);
   root.add(beam,beam.target);headlights.push(beam);
  }
- let loaded=false,remoteWheels=[],wheelRotations=[];
+ let loaded=false,remoteWheels=[];
  const loader=new GLTFLoader();
  const loadedPromise=new Promise(resolve=>{
   loader.load(CAR_URL,gltf=>{
@@ -62,7 +62,7 @@ export function createCar(scene){
     car.scale.multiplyScalar(s);car.updateMatrixWorld(true);
     adjusted=new THREE.Box3().setFromObject(car);
     const center=adjusted.getCenter(new THREE.Vector3());
-    car.position.x-=center.x;car.position.z-=center.z;car.position.y-=adjusted.min.y-.10;
+    car.position.x-=center.x;car.position.z-=center.z;car.position.y-=adjusted.min.y-.04;
     car.traverse(o=>{
       if(o.isMesh){o.castShadow=true;o.receiveShadow=true;
        if(o.material){const mats=Array.isArray(o.material)?o.material:[o.material];
@@ -71,18 +71,33 @@ export function createCar(scene){
       }
       if(/wheel/i.test(o.name)&&o.children.length>0&&o.position&&/(front|rear|left|right|fl|fr|rl|rr)/i.test(o.name))remoteWheels.push(o);
     });
-    if(remoteWheels.length>4)remoteWheels=remoteWheels.filter(o=>!remoteWheels.some(other=>other!==o&&o.parent===other));
-    remoteWheels=remoteWheels.slice(0,4);wheelRotations=remoteWheels.map(o=>o.rotation.clone());
+    // Keep the imported wheels' original axle transforms intact.
+    // Turn the hubs for steering and spin their tire/rim geometry locally.
+    remoteWheels=['WheelFrontL','WheelFrontR','WheelRearL','WheelRearR']
+      .map(name=>car.getObjectByName(name)).filter(Boolean).map(w=>{
+        const originalParent=w.parent;
+        const originalPosition=w.position.clone();
+        const steerPivot=new THREE.Group();steerPivot.name=w.name+'Steer';
+        steerPivot.position.copy(originalPosition);
+        originalParent.add(steerPivot);
+        steerPivot.add(w);w.position.set(0,0,0);
+        const spinPivot=new THREE.Group();spinPivot.name=w.name+'Spin';
+        const movingParts=w.children.filter(child=>!/BrakePad/i.test(child.name));
+        w.add(spinPivot);
+        for(const child of movingParts)spinPivot.add(child);
+        // Calipers stay on the steered hub, not the spinning rotor.
+        return {spin:spinPivot,steer:steerPivot,front:/Front/.test(w.name)};
+      });
     visual.add(car);fallback.visible=false;loaded=true;resolve(true);
    }catch(e){console.error('Model conversion:',e);resolve(false);}
   },undefined,err=>{console.warn('External car model unavailable; procedural GT enabled',err);resolve(false);});
  });
  let oldWheelSpin=0;
  function update(physics,dt,weather='clear'){
-  root.position.set(physics.x,physics.y+.10,physics.z);
+  root.position.set(physics.x,physics.y+.04,physics.z);
   root.rotation.y=physics.yaw;
   suspension.rotation.order='YXZ';
-  suspension.rotation.x=physics.pitch*.65; suspension.rotation.z=physics.roll*.66;
+  suspension.rotation.x=-physics.pitch*.65; suspension.rotation.z=physics.roll*.66;
   suspension.position.y=Math.sin(physics.wheelSpin*.7)*.004;
   headlights.forEach(light=>{light.intensity=weather==='night'?36:weather==='rain'?10:0;});
   const spinDelta=physics.wheelSpin-oldWheelSpin;oldWheelSpin=physics.wheelSpin;
@@ -90,7 +105,10 @@ export function createCar(scene){
    if(w.steer)w.spin.rotation.y=physics.steerAngle*.9;
    w.spin.rotation.x+=spinDelta;
   }
-  remoteWheels.forEach((w,i)=>{w.rotation.x=wheelRotations[i].x+physics.wheelSpin; if(/front|fl|fr/i.test(w.name))w.rotation.y=wheelRotations[i].y+physics.steerAngle;});
+  remoteWheels.forEach(w=>{
+   w.spin.rotation.x=physics.wheelSpin;
+   w.steer.rotation.z=w.front?physics.steerAngle:0;
+  });
  }
  return {root,suspension,visual,loadedPromise,get loaded(){return loaded;},update};
 }
