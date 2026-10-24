@@ -1,6 +1,6 @@
 import * as THREE from 'three';
 import {Sky} from 'three/addons/objects/Sky.js';
-import {RGBELoader} from 'three/addons/loaders/RGBELoader.js';
+import {HDRLoader} from 'three/addons/loaders/HDRLoader.js';
 import {buildWorld,groundHeightAt} from './vendor/world.js';
 import {setDem} from './vendor/terrain.js';
 import {DEM} from './vendor/dem_data.js';
@@ -25,12 +25,13 @@ export class DrivingScene{
     this.scene.fog=new THREE.Fog(0xc6d0d3,250,2600);
     this.sunDirection=new THREE.Vector3();this.cameraMode=0;this.snap=true;this.clock=0;
     this.target=new THREE.Vector3();this.desired=new THREE.Vector3();this.look=new THREE.Vector3();this.forward=new THREE.Vector3();this.sunOffset=new THREE.Vector3();
+    this.reducedMotion=matchMedia('(prefers-reduced-motion: reduce)');
     this.setWeather('day');
     addEventListener('resize',()=>{this.camera.aspect=innerWidth/innerHeight;this.camera.updateProjectionMatrix();this.renderer.setSize(innerWidth,innerHeight);});
   }
   async load(progress){
     progress(12,'Loading detailed road materials…');
-    const [materials,car,hdr]=await Promise.all([loadMaterials(),new CarView().load(),new RGBELoader().loadAsync('/models/venice-sunset.hdr')]);
+    const [materials,car,hdr]=await Promise.all([loadMaterials(),new CarView().load(),new HDRLoader().loadAsync('/models/venice-sunset.hdr')]);
     progress(65,'Building terrain and forest…');
     await new Promise(r=>setTimeout(r,30));
     hdr.mapping=THREE.EquirectangularReflectionMapping;
@@ -47,7 +48,10 @@ export class DrivingScene{
     progress(92,'Preparing the cockpit…');
     this.addContactShadow();this.setWeather(this.weather);this.setQuality('balanced');
     for(let i=0;i<120;i++)this.session.vehicle.step(1/240);
-    this.session.laps.reset(this.session.vehicle.trackS);this.car.update(this.session.vehicle);progress(100,'Ready. The road is yours.');
+    this.session.laps.reset(this.session.vehicle.trackS);this.car.update(this.session.vehicle);
+    progress(96,'Finishing the lighting…');
+    await this.renderer.compileAsync(this.scene,this.camera);
+    progress(100,'Ready. The road is yours.');
   }
   addContactShadow(){
     const c=document.createElement('canvas');c.width=c.height=128;const g=c.getContext('2d');
@@ -78,7 +82,7 @@ export class DrivingScene{
     const v=this.session.vehicle;this.car.update(v);this.clock+=dt;
     const f=this.forward.set(0,0,-1).applyQuaternion(v.quat);
     if(!driving){
-      const angle=.8+Math.sin(this.clock*.08)*.18;
+      const angle=.8+(this.reducedMotion.matches?0:Math.sin(this.clock*.08)*.18);
       this.desired.set(-Math.sin(angle)*6,2.0,-Math.cos(angle)*6).applyQuaternion(v.quat).add(v.pos);
       // Position the car to the right of the launch card.
       this.look.copy(v.pos).addScaledVector(new THREE.Vector3(1,0,0).applyQuaternion(v.quat),2.0);this.look.y+=.25;
@@ -96,7 +100,8 @@ export class DrivingScene{
     else this.camera.position.lerp(this.desired,1-Math.exp(-dt*7));
     this.camera.lookAt(this.look);
     const fov=driving?(this.cameraMode===0?48+Math.min(10,Math.abs(v.speed)*.12):65):44;
-    this.camera.fov=THREE.MathUtils.lerp(this.camera.fov,fov,1-Math.exp(-dt*4));this.camera.updateProjectionMatrix();
+    const nextFov=THREE.MathUtils.lerp(this.camera.fov,fov,1-Math.exp(-dt*4));
+    if(Math.abs(this.camera.fov-nextFov)>.001){this.camera.fov=nextFov;this.camera.updateProjectionMatrix();}
     this.sunOffset.copy(this.sunDirection).multiplyScalar(160);this.sun.position.copy(v.pos).add(this.sunOffset);this.sun.target.position.copy(v.pos);this.sun.target.updateMatrixWorld();
     this.sky.position.copy(this.camera.position);
     const q=this.session.track.query(v.pos.x,v.pos.z,{},v.pos.y);

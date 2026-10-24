@@ -1,5 +1,9 @@
 const $=id=>document.getElementById(id);
-export function formatTime(seconds){if(seconds===null)return '— — : — —';const m=Math.floor(seconds/60),s=seconds%60;return `${String(m).padStart(2,'0')}:${s.toFixed(3).padStart(6,'0')}`;}
+export function formatTime(seconds){
+  if(!Number.isFinite(seconds)||seconds<0)return '— — : — —';
+  const ms=Math.round(seconds*1000),minutes=Math.floor(ms/60000),remainder=ms%60000;
+  return `${String(minutes).padStart(2,'0')}:${String(Math.floor(remainder/1000)).padStart(2,'0')}.${String(remainder%1000).padStart(3,'0')}`;
+}
 export class HUD{
   constructor(session){
     this.session=session;this.segments=[];for(let i=0;i<28;i++){const el=document.createElement('i');if(i>22)el.classList.add('hot');$('revs').appendChild(el);this.segments.push(el);}
@@ -17,6 +21,8 @@ export class HUD{
     $('speed').textContent=Math.round(v.speedKmh);$('gear').textContent=v.gearLabel;$('transmission').textContent=v.auto?'AUTO':'MANUAL';
     $('rpm-number').textContent=(v.rpm/1000).toFixed(1);this.segments.forEach((el,i)=>el.classList.toggle('on',i<v.rpm/v.spec.engine.redline*28));
     $('throttle-meter').style.width=`${v.ctrl.throttle*100}%`;$('brake-meter').style.width=`${v.ctrl.brake*100}%`;
+    $('steering-meter').style.left=`${(v.ctrl.steer+1)*50}%`;$('steering').setAttribute('aria-valuenow',String(Math.round(v.ctrl.steer*100)));
+
     $('lap-time').textContent=formatTime(laps.current);$('best-lap').textContent=formatTime(laps.best);$('lap-number').textContent=String(laps.completed+1).padStart(2,'0');
     $('sector').textContent=track.sectionAt(v.trackS)?.name||this.name;$('distance').textContent=`${(v.trackS/1000).toFixed(2)} / ${this.length} KM`;
     $('surface').textContent=v.airborne?'AIRBORNE':v.onTrack?'ASPHALT':'LOW GRIP';

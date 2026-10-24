@@ -23,6 +23,8 @@ Production: `npm run build`, then `npm run preview`. Vercel uses the Vite build 
 
 ## Controls
 
+Once loading finishes, press any WASD or arrow movement key to start/resume driving, or use Start your engine. Click the driving view to regain focus. WASD and arrow keys are both supported; inactive touch controls cannot poison keyboard inputs. Active keyboard/touch driving takes priority over a connected controller.
+
 | Control | Action |
 | --- | --- |
 | W / Up | Throttle; brake out of reverse, then forward |
@@ -34,8 +36,11 @@ Production: `npm run build`, then `npm run preview`. Vercel uses the Vite build 
 | M | Automatic / manual gearbox |
 | Q / E | Shift down / up |
 | P / Escape | Pause / resume |
+| F | Fullscreen / exit fullscreen |
 
 Gamepad: analog left stick steering, RT throttle, LT brake, A handbrake. Keyboard and touch remain available if a gamepad disconnects. Touch controls appear automatically on coarse-pointer devices, or can be enabled in Controls. Backgrounding the tab pauses simulation and audio. TC and ABS buttons toggle actual simulation assists.
+
+Personal bests are saved separately for each route in this browser. Paint, lighting, graphics, camera, mute and touch-control preferences also persist. Private browsing or blocked storage does not prevent driving.
 
 ## Verification
 
