@@ -1,0 +1,14 @@
+# Audio, grip and wheel fit implementation plan
+
+User requests a different engine sound, rear wheels within the body, and planted laptop handling. Continue directly on the approved realism branch using the existing Three.js/Web Audio/240Hz solver.
+
+- [x] Reproduce powered-corner instability on an isolated flat dry surface. Add a regression for a 72 km/h powered corner keeping body sideslip below 12 degrees, plus wet/grass and assists-off comparisons. Keep realistic finite traction and no airborne stabilization.
+- [x] Fit rear track inside the measured model fenders (current tire extent exceeds fender width). Test actual GLB geometry through full wheel rotation, using physical hub positions, retaining vertical suspension travel.
+- [x] Replace the default waveguide with locally hosted V8 RPM samples from CryHam/Stunt Rally 3 (CC BY 4.0, generated with engine-sim). Blend adjacent RPM bands with continuous pitch and throttle filtering; retain existing engine as fallback for unavailable samples. Add source/attribution and loop preparation provenance.
+- [x] Add audio mixing tests and browser validation of decoded samples, mute/pause/restart and failed sample fallback. Run all Node tests, full-route smoke, production build and focused browser screenshots. Review and push codex/realism-upgrade.
+
+Approach: improve torque control and keyboard steering within the existing tire model. Preserve road/grass/wet grip differences, weight transfer, braking and deliberate handbrake behavior. Avoid globally inflating friction or directly overwriting vehicle yaw/velocity. Audio remains honest about sample provenance; no claim of real vehicle recordings or calibrated production-car dynamics.
+
+Implementation notes: retained the existing tire friction coefficients and input smoothing; the dominant issue was torque control rather than insufficient global grip. TC now reserves lateral tire capacity, stays effective when a corner re-enters launch RPM, and intervenes earlier on lateral slip. Straight launches retain axle torque limiting to avoid low-speed TC chatter. Rear half-track changed from 0.86 m to 0.84 m; real GLB vertex tests require at least 1 cm fender clearance.
+
+Validation so far: 35/35 Node tests passed; Alpine Pass full-route smoke completed 5.06 km with zero off-road frames/rollovers; real Web Audio checks decoded all eight loops and rendered 900/2500/4500/8500 RPM without silence or clipping, and passed mute, pause/resume, and missing-sample fallback. Asset preparation re-run with original upstream filenames succeeded (290,126 encoded bytes). Independent review found no runtime blockers; fixed filename/documentation inconsistencies. Final production gameplay browser regression passed on Alpine Pass and Nordschleife: all movement bindings, acceleration/braking/reset, three cameras, pause/resume, audio, responsive layout; zero page errors or failed HTTP responses.

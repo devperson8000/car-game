@@ -12,3 +12,18 @@ test('real GLB baked front steering is removed before simulation steering and sp
   assert.ok(Math.abs(axis.y)<1e-5&&Math.abs(axis.z)<1e-5,`${name}: ${axis.toArray()}`);
  }
 });
+
+import {loadCarGeometry} from './helpers/car-model.js';import {CarView} from '../src/vehicle.js';import {SPEC} from '../src/sim/spec.js';
+test('rear tires remain inside the measured fenders through rotation and suspension travel',async()=>{
+ const car=new CarView(),model=await loadCarGeometry();model.rotation.y=Math.PI;model.scale.setScalar(.88);model.position.set(0,-.4,-.19);car.group.add(model);car.group.updateMatrixWorld(true);
+ const mounts=['WheelFrontL','WheelFrontR','WheelRearL','WheelRearR'].map(n=>model.getObjectByName(n));
+ let fenderWidth=0;const p=new THREE.Vector3();
+ model.traverse(mesh=>{if(!mesh.isMesh)return;let ancestor=mesh;while(ancestor){if(/^Wheel(Front|Rear)/.test(ancestor.name))return;ancestor=ancestor.parent;}const a=mesh.geometry.attributes.position;for(let i=0;i<a.count;i++){p.fromBufferAttribute(a,i).applyMatrix4(mesh.matrixWorld);if(Math.abs(p.z-SPEC.wheels.rz)<.35&&p.y>-.08&&p.y<.4)fenderWidth=Math.max(fenderWidth,Math.abs(p.x));}});
+ car.wheels=mounts.map(n=>bindWheel(car.group,n));
+ for(const spinAngle of [0,.7,1.6,3.4,5.1])for(const travel of [-.05,0,.06]){
+  const pos=new THREE.Vector3(5,2,4),quat=new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0,1,0),.8),W=SPEC.wheels;
+  const v={pos,quat,ctrl:{brake:0,steer:0},wheels:[[-W.htF,W.fz],[W.htF,W.fz],[-W.htR,W.rz],[W.htR,W.rz]].map(([x,z])=>({worldPos:new THREE.Vector3(x,-.062+travel,z).applyQuaternion(quat).add(pos),steer:0,spinAngle}))};
+  car.update(v);car.group.updateMatrixWorld(true);const inverse=car.group.matrixWorld.clone().invert();
+  for(const mount of mounts.slice(2))mount.traverse(mesh=>{if(!mesh.isMesh)return;const a=mesh.geometry.attributes.position;for(let i=0;i<a.count;i++){p.fromBufferAttribute(a,i).applyMatrix4(mesh.matrixWorld).applyMatrix4(inverse);assert.ok(Math.abs(p.x)<=fenderWidth-.01,`${mount.name} tire x=${p.x.toFixed(3)}, fender=${fenderWidth.toFixed(3)}`);}});
+ }
+});

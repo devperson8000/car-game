@@ -1,6 +1,6 @@
 # APEX — Alpine Pass / Nordschleife
 
-A single-player browser driving simulator with a detailed sports car, 240 Hz four-wheel suspension/tire/drivetrain physics, physically based road materials, sun and shadows, and responsive synthesized engine audio.
+A single-player browser driving simulator with a detailed sports car, 240 Hz four-wheel suspension/tire/drivetrain physics, physically based road materials, sun and shadows, and responsive multi-RPM V8 engine audio.
 
 ## Run
 
@@ -55,12 +55,16 @@ npm run preview -- --port 4173
 CHROMIUM_PATH=/usr/bin/chromium npm run test:browser
 # Focused loading screen, input handoff, and asset failure/retry checks
 TEST_URL=http://127.0.0.1:4173 npm run test:loading
+# Real Web Audio checks against the Vite dev server (npm run dev -- --port 5173):
+TEST_URL=http://127.0.0.1:5173 npm run test:audio
 ```
 
-Node tests cover acceleration/braking, analog controls, handbrake release, finite input/state, road contact/barriers, reverse, reset/pause, route sampling and lap validation. Browser checks exercise the production build, assets, controls, cameras, pause, audio worklet and responsive layout. Screenshots go to ignored `test-results/`. Software WebGL in a cloud machine is substantially slower than GPU rendering; it cannot establish desktop/mobile frame-rate guarantees.
+Node tests cover acceleration/braking, analog controls, handbrake release, finite input/state, road contact/barriers, reverse, reset/pause, route sampling and lap validation. Browser checks exercise the production build, assets, controls, cameras, pause, engine audio and responsive layout. Screenshots go to ignored `test-results/`. Software WebGL in a cloud machine is substantially slower than GPU rendering; it cannot establish desktop/mobile frame-rate guarantees.
 
 ## Assets and limitations
 
-See `/credits.html` in the app and `public/licenses/` for asset provenance and full notices. The car is Eric Chadwick / Darmstadt Graphics Group's CC BY 4.0 Car Concept. The simulation/track/world core is adapted from bwchoi's MIT Nürburgring Drive; engine DSP is derived from Antonio-R1's MIT waveguide model. The original surface textures are ambientCG CC0, retrieved from an accessible public mirror and JPEG-optimized at their original 2K resolution.
+See `/credits.html` in the app and `public/licenses/` for asset provenance and full notices. The car is Eric Chadwick / Darmstadt Graphics Group's CC BY 4.0 Car Concept. The simulation/track/world core is adapted from bwchoi's MIT Nürburgring Drive; default engine audio uses CryHam’s CC BY 4.0 multi-RPM V8 samples from Stunt Rally 3 (recorded from engine-sim), with Antonio-R1’s MIT waveguide model as a fallback. The original surface textures are ambientCG CC0, retrieved from an accessible public mirror and JPEG-optimized at their original 2K resolution.
 
-Engine, tire, wind, road, shift and impact audio are synthesized, not the previously researched Sonniss recordings. Handling is a fictional sports-car tune, not manufacturer-calibrated vehicle dynamics. This is not a professional engineering simulator. There is no traffic, multiplayer, soft-body damage or wheel force feedback. A successful local build does not mean a Vercel deployment has been created.
+The default V8 uses engine-sim samples; the fallback engine, tires, wind, road, shifts and impacts are synthesized. No Sonniss recordings are bundled. Handling is a fictional sports-car tune, not manufacturer-calibrated vehicle dynamics. This is not a professional engineering simulator. There is no traffic, multiplayer, soft-body damage or wheel force feedback. A successful local build does not mean a Vercel deployment has been created.
+
+Engine audio source and modifications: `public/licenses/v8-source.md`. Eight locally hosted RPM loops total about 290 KB; adjacent bands crossfade with continuous pitch, load filtering and cockpit attenuation. Traction control preserves lateral grip under power, including launches in a bend. Rear track matches the fender envelope through wheel rotation and suspension travel.

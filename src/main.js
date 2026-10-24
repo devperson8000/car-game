@@ -95,7 +95,7 @@ let hudElapsed=0,statsElapsed=0,frames=0;
 function frame(now){
   requestAnimationFrame(frame);const realDt=Math.max(0,(now-last)/1000),dt=Math.min(.1,realDt);last=now;
   if(!loaded)return;
-  if(started&&!paused){session.advance(dt,input.sample(dt,session.vehicle));audio.update(session.vehicle,view.weather);
+  if(started&&!paused){session.advance(dt,input.sample(dt,session.vehicle));audio.update(session.vehicle,view.weather,view.cameraMode);
     if(session.vehicle.rollover||session.vehicle.pos.y< -200){session.reset();view.snap=true;notify('Car recovered');}
   }
   if(session.laps.completed>completedLaps){
