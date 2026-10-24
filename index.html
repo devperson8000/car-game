@@ -2,40 +2,73 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-  <meta name="theme-color" content="#101416"><meta name="description" content="Drive a detailed V8 concept sports car around the Nürburgring. A free browser driving simulator with real suspension, tire grip and responsive engine audio.">
-  <title>APEX / Alpine Pass</title><link rel="icon" href="/favicon.svg" type="image/svg+xml">
+  <meta name="theme-color" content="#101416"><meta name="description" content="Drive a detailed V8 concept sports car on Alpine Pass or the Nürburgring. A free browser driving simulator with real suspension, tire grip and responsive engine audio.">
+  <link rel="stylesheet" href="/src/loading.css"><title>APEX / Alpine Pass</title><link rel="icon" href="/favicon.svg" type="image/svg+xml">
 </head>
-<body>
+<body class="booting">
+<section id="boot-screen" class="boot-screen" data-state="loading" data-stage="0" aria-label="Loading your driving experience" aria-busy="true">
+  <div class="boot-grain" aria-hidden="true"></div><div class="boot-watermark" aria-hidden="true">APEX</div>
+  <div class="boot-top"><span class="boot-brand">APEX<span>/</span></span><span class="boot-edition">THE DRIVING EXPERIENCE <b>01 / PREPARATION</b></span></div>
+  <div class="boot-content">
+    <div class="boot-copy"><p class="boot-eyebrow"><i></i> LEAVE THE EVERYDAY BEHIND</p><h2 id="boot-title">The road<br>is <em>calling.</em></h2><p class="boot-description">A little anticipation.<br>A whole lot of possibility.</p></div>
+    <div class="boot-art" aria-hidden="true">
+      <div class="boot-art-halo"></div>
+      <svg class="boot-car" viewBox="0 0 900 370" fill="none">
+        <defs><linearGradient id="boot-metal" x1="110" y1="90" x2="810" y2="290" gradientUnits="userSpaceOnUse"><stop stop-color="#76848a"/><stop offset=".48" stop-color="#e4e9e5"/><stop offset="1" stop-color="#607175"/></linearGradient><linearGradient id="boot-scan"><stop stop-color="#ef5358" stop-opacity="0"/><stop offset=".5" stop-color="#ef5358"/><stop offset="1" stop-color="#ef5358" stop-opacity="0"/></linearGradient></defs>
+        <g class="boot-grid" stroke="#a9bdc1" stroke-opacity=".08"><path d="M20 280H880M20 220H880M20 160H880M20 100H880M150 50V330M300 50V330M450 50V330M600 50V330M750 50V330"/></g>
+        <path d="M65 285H840" stroke="#afc1c3" stroke-opacity=".24"/><path class="boot-road-trace" d="M65 312H840" stroke="#ef5358" stroke-width="1" stroke-dasharray="100 680"/>
+        <g stroke="url(#boot-metal)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M92 250 99 212 130 190 218 174 302 111Q317 101 344 101H473Q510 102 547 129L609 168 728 183 791 207 810 244 798 264H731Q728 206 679 205Q629 207 625 264H279Q277 206 228 205Q178 207 175 264H109L92 250Z"/>
+          <path d="M234 174 318 118H400L422 172 234 174ZM417 118H473Q495 119 534 144L575 170H438L417 118Z" fill="#93a9ae" fill-opacity=".045"/>
+          <path d="M443 184 450 249H603L581 182M313 187 291 246M115 220 164 215M748 203 783 214 787 223 748 217M108 245H159M303 258H600M613 177 645 168 659 172 646 184M745 245 789 249"/>
+          <path d="M318 189H390M459 187H534" stroke-opacity=".4"/><path d="M115 202 161 199" stroke="#f05b60" stroke-width="3"/>
+          <circle cx="228" cy="258" r="42"/><circle cx="228" cy="258" r="29"/><circle cx="679" cy="258" r="42"/><circle cx="679" cy="258" r="29"/>
+          <path d="M228 231V285M202 249 253 267M211 280 244 236M679 231V285M653 249 704 267M662 280 695 236" stroke-opacity=".6"/>
+        </g>
+        <path class="boot-car-reveal" d="M100 211 218 174 302 111Q317 101 344 101H473Q510 102 547 129L609 168 728 183 791 207" stroke="#ef5358" stroke-width="2" stroke-dasharray="180 900"/>
+        <path d="M228 330H679M228 324V336M679 324V336" stroke="#9aafb2" stroke-opacity=".25"/>
+      </svg>
+      <div class="boot-car-caption"><span><b>APEX GT</b> / 4.0 V8</span><span>ENGINEERED FOR THE ESCAPE</span></div>
+    </div>
+  </div>
+  <div class="boot-bottom">
+    <div class="boot-load-line"><div><p class="boot-eyebrow" id="boot-route">YOUR NEXT GREAT DRIVE</p><p id="boot-message" role="status" aria-live="polite">Preparing your driving experience…</p></div><div class="boot-percent"><span id="boot-percent">000</span><small>%</small></div></div>
+    <div id="boot-progress" class="boot-progress" role="progressbar" aria-label="Loading progress" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0"><span id="boot-progress-fill"></span></div>
+    <div class="boot-foot"><ol class="boot-stages" aria-label="Loading stages"><li><span>01</span> THE MACHINE</li><li><span>02</span> THE ROAD</li><li><span>03</span> THE ATMOSPHERE</li></ol><span class="boot-note">BEST EXPERIENCED WITH HEADPHONES</span></div>
+    <button id="boot-retry" type="button" hidden>TRY AGAIN <span aria-hidden="true">→</span></button>
+  </div>
+  <noscript><p>Enable JavaScript to load the driving experience.</p></noscript>
+</section>
 <div id="viewport" aria-label="3D driving simulator"></div>
 <div class="vignette"></div>
-<header class="topbar"><a class="wordmark" href="/" aria-label="APEX home">APEX<span> / </span><small>DRIVING EXPERIENCE</small></a><div class="session-tag" id="route-tag"><i></i> ALPINE PASS <span>SCENIC ROUTE</span></div></header>
-<main>
+<header class="topbar" inert><a class="wordmark" href="/" aria-label="APEX home">APEX<span> / </span><small>DRIVING EXPERIENCE</small></a><div class="session-tag" id="route-tag"><i></i> ALPINE PASS <span>SCENIC ROUTE</span></div></header>
+<main inert>
   <section id="menu" class="menu" data-mode="start" aria-label="Driving session">
     <div class="eyebrow"><span class="red-line"></span> THE LONG WAY HOME / SCENIC MOUNTAIN DRIVE</div>
-    <h1>Find your<br><em>limit.</em></h1>
-    <p class="intro">One car. A mountain road. Endless possibility.<br>Make every corner count.</p>
+    <h1 id="menu-title">Find your<br><em>limit.</em></h1>
+    <p class="intro" id="menu-intro">One car. A mountain road. Endless possibility.<br>Make every corner count.</p>
     <div class="car-label"><span class="car-mark">GT</span><div><strong>APEX GT</strong><span>4.0 V8 · REAR-WHEEL DRIVE</span></div><span class="spec-label">8,500<span>RPM</span></span></div>
     <div class="session-options"><label>ROUTE<select id="route"><option value="mountain">Alpine Pass</option><option value="nordschleife">Nordschleife</option></select></label>
-      <label>LIGHT<select id="lighting"><option value="day">Eifel daylight</option><option value="golden">Golden hour</option><option value="overcast">Overcast</option></select></label>
+      <label>LIGHT<select id="lighting"><option value="day">Clear daylight</option><option value="golden">Golden hour</option><option value="overcast">Overcast</option></select></label>
       <label>GRAPHICS<select id="quality"><option value="high">High</option><option value="balanced" selected>Balanced</option><option value="low">Performance</option></select></label>
       </div><div class="paint-row"><label class="paint-label">PAINT<input id="paint" type="color" value="#b8172e" aria-label="Car paint color"></label>
     </div>
-    <button id="drive" class="drive-button" disabled><span>PREPARING YOUR DRIVE</span><b>↗</b></button>
+    <button id="drive" class="drive-button" disabled><span>PREPARING YOUR DRIVE</span><b aria-hidden="true"><svg viewBox="0 0 24 24" width="26" height="26" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M5 19 19 5M5 5h14v14"/></svg></b></button>
     <div class="loading-row"><span id="loading-status" role="status">Loading the circuit…</span><span id="load-percent">0%</span></div><div class="load-track"><div id="load-progress"></div></div>
     <button id="retry" hidden>Retry loading</button>
-    <div class="key-hint"><span><kbd>W A S D</kbd> Drive</span><span><kbd>C</kbd> Camera</span><span><kbd>R</kbd> Recover</span></div>
+    <div class="key-hint"><span><kbd>W A S D / ↑ ↓ ← →</kbd> Drive</span><span><kbd>C</kbd> Camera</span><span><kbd>R</kbd> Recover</span></div>
     <p class="menu-foot">HEADPHONES RECOMMENDED <span>·</span> KEYBOARD / GAMEPAD / TOUCH</p>
   </section>
   <section id="hud" hidden aria-label="Live driving telemetry">
     <div class="lap-panel"><div class="eyebrow">LAP <span id="lap-number">01</span> <span class="live-dot"></span> LIVE SESSION</div><div id="lap-time">00:00.000</div><div class="best-lap">PERSONAL BEST <span id="best-lap">— — : — —</span></div></div>
     <div class="sector-panel"><span class="eyebrow">CURRENT SECTOR</span><strong id="sector">Döttinger Höhe</strong><span id="distance">0.00 / 20.71 KM</span></div>
     <div class="map-panel"><canvas id="minimap" width="360" height="280" aria-label="Circuit map with current position"></canvas><div><i></i> <span id="map-name">ALPINE PASS</span><span id="map-length"></span></div></div>
-    <div class="instrument-panel"><div class="rev-labels"><span>RPM × 1000</span><span id="rpm-number">0.9</span></div><div id="revs" class="revs"></div><div class="speed-row"><div class="gear-block"><span id="gear">1</span><small id="transmission">AUTO</small></div><div class="speed-block"><strong id="speed">0</strong><span>KM/H</span></div></div><div class="pedals"><span>BRK</span><div><b id="brake-meter"></b></div><span>THR</span><div><b id="throttle-meter"></b></div></div><div class="assists"><button id="tc" aria-pressed="true">TC ON</button><button id="abs" aria-pressed="true">ABS ON</button><span id="surface">ASPHALT</span></div></div>
+    <div class="instrument-panel"><div class="rev-labels"><span>RPM × 1000</span><span id="rpm-number">0.9</span></div><div id="revs" class="revs"></div><div class="speed-row"><div class="gear-block"><span id="gear">1</span><small id="transmission">AUTO</small></div><div class="speed-block"><strong id="speed">0</strong><span>KM/H</span></div></div><div class="pedals"><span>BRK</span><div><b id="brake-meter"></b></div><span>THR</span><div><b id="throttle-meter"></b></div></div><div class="steering-row"><span>STEER</span><div id="steering" role="meter" aria-label="Steering input" aria-valuemin="-100" aria-valuemax="100" aria-valuenow="0"><b id="steering-meter"></b></div></div><div class="assists"><button id="tc" aria-pressed="true">TC ON</button><button id="abs" aria-pressed="true">ABS ON</button><span id="surface">ASPHALT</span></div></div>
     <div id="toast" role="status"></div>
     <div id="touch-ui"><div class="touch-steering"><button data-control="left" aria-label="Steer left">‹</button><button data-control="right" aria-label="Steer right">›</button></div><div class="touch-pedals"><button data-control="brake" aria-label="Brake">BRAKE</button><button data-control="throttle" aria-label="Accelerate">GAS</button></div></div>
   </section>
 </main>
-<footer><div class="footer-left"><span class="weather-label"><i></i><span id="weather-text">18°C · DRY TARMAC</span></span><span id="fps-label"></span><span id="audio-status" data-state="idle">V8 AUDIO</span><a href="/credits.html" target="_blank" rel="noopener">CREDITS</a></div><nav aria-label="Simulator controls"><button id="camera" title="Change camera (C)">Chase <small>C</small></button><button id="sound" aria-pressed="false" title="Toggle sound">Sound on</button><button id="controls">Controls</button><button id="reset" title="Recover car (R)">Recover <small>R</small></button><button id="pause" title="Pause (Esc)">Pause <small>ESC</small></button></nav></footer>
-<dialog id="help-dialog"><button id="close-help" class="close-button" aria-label="Close controls">×</button><span class="eyebrow">DRIVER'S BRIEFING</span><h2>Make yourself at home.</h2><dl><dt>W / ↑</dt><dd>Accelerate</dd><dt>S / ↓</dt><dd>Brake · hold near standstill to reverse</dd><dt>A D / ← →</dt><dd>Steer</dd><dt>Space</dt><dd>Handbrake</dd><dt>C</dt><dd>Chase / cockpit / hood camera</dd><dt>R</dt><dd>Recover to the circuit</dd><dt>M · Q / E</dt><dd>Auto/manual · shift down/up</dd><dt>P / Esc</dt><dd>Pause and session settings</dd><dt>Gamepad</dt><dd>Left stick steer · RT throttle · LT brake · A handbrake</dd></dl><p>Ease onto the throttle. Brake before the corner, then feed in power as you unwind the steering. Grass has much less grip.</p><label class="touch-toggle"><input id="show-touch" type="checkbox"> Show touch controls</label><p class="fineprint">Fictional vehicle tuning. Synthesized engine audio. Real-world circuit layout; scenery is an approximation.</p></dialog>
+<footer inert><div class="footer-left"><span class="weather-label"><i></i><span id="weather-text">18°C · DRY TARMAC</span></span><span id="fps-label"></span><span id="audio-status" data-state="idle">V8 AUDIO</span><a href="/credits.html" target="_blank" rel="noopener">CREDITS</a></div><nav aria-label="Simulator controls"><button id="fullscreen" aria-pressed="false" title="Toggle fullscreen (F)">Full screen</button><button id="camera" title="Change camera (C)">Chase <small>C</small></button><button id="sound" aria-pressed="false" title="Toggle sound">Sound on</button><button id="controls">Controls</button><button id="reset" title="Recover car (R)">Recover <small>R</small></button><button id="pause" title="Pause (Esc)">Pause <small>ESC</small></button></nav></footer>
+<dialog id="help-dialog"><button id="close-help" class="close-button" aria-label="Close controls">×</button><span class="eyebrow">DRIVER'S BRIEFING</span><h2>Make yourself at home.</h2><dl><dt>W / ↑</dt><dd>Accelerate</dd><dt>S / ↓</dt><dd>Brake · hold near standstill to reverse</dd><dt>A D / ← →</dt><dd>Steer</dd><dt>Space</dt><dd>Handbrake</dd><dt>C</dt><dd>Chase / cockpit / hood camera</dd><dt>R</dt><dd>Recover to the circuit</dd><dt>F</dt><dd>Toggle fullscreen</dd><dt>M · Q / E</dt><dd>Auto/manual · shift down/up</dd><dt>P / Esc</dt><dd>Pause and session settings</dd><dt>Gamepad</dt><dd>Left stick steer · RT throttle · LT brake · A handbrake</dd></dl><p>Ease onto the throttle. Brake before the corner, then feed in power as you unwind the steering. Grass has much less grip.</p><label class="touch-toggle"><input id="show-touch" type="checkbox"> Show touch controls</label><p class="fineprint">Fictional vehicle tuning. Synthesized engine audio. Alpine Pass is fictional. Nordschleife uses real road data with approximate scenery.</p></dialog>
 <script type="module" src="/src/main.js"></script>
 </body></html>
