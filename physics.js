@@ -36,7 +36,7 @@ export class DrivingPhysics{
  }
  step(dt,input,track,weather='clear',assist=true){
   dt=clamp(dt,.001,.04);
-  const steerTarget=(input.right?1:0)-(input.left?1:0);
+  const steerTarget=(input.left?1:0)-(input.right?1:0);
   this.steer=move(this.steer,steerTarget,8,dt);
   this.throttle=move(this.throttle,input.throttle?1:0,7,dt);
   this.brake=move(this.brake,input.brake?1:0,13,dt);
