@@ -1,4 +1,5 @@
 import './style.css';
+import {LoadingScreen} from './loading.js';
 import {Session} from './sim/session.js';
 import {DrivingScene} from './scene.js';
 import {Controls,MOVEMENT_KEYS} from './input.js';
@@ -8,9 +9,12 @@ import {loadPreferences,savePreference,readBestLap,saveBestLap} from './preferen
 import {setWeatherGrip} from './vendor/physics.js';
 
 const $=id=>document.getElementById(id);
+const loadingScreen=new LoadingScreen($('boot-screen'));
+const launchRegions=[document.querySelector('header'),document.querySelector('main'),document.querySelector('footer')];
 let storage;try{storage=localStorage;}catch{/* The game also works without browser storage. */}
 const preferences=loadPreferences(storage),save=(key,value)=>savePreference(storage,key.replace(/^apex-/,''),value);
 const route=preferences.route;$('route').value=route;
+$('boot-route').textContent=route==='mountain'?'ALPINE PASS / THE SCENIC ROUTE':'NORDSCHLEIFE / THE GREEN HELL';
 const session=new Session(route),audio=new DrivingAudio();let view,hud,loaded=false,started=false,paused=true,last=performance.now(),toastTimer,helpResume=false;
 session.paused=true;session.laps.best=readBestLap(storage,route);audio.muted=preferences.muted;
 $('sound').setAttribute('aria-pressed',String(audio.muted));$('sound').textContent=audio.muted?'Sound off':'Sound on';
@@ -26,7 +30,7 @@ function pause(value,showMenu=true){
   if(!value)view?.renderer.domElement.focus({preventScroll:true});
 }
 const input=new Controls(code=>{
-  if($('help-dialog').open)return;
+  if(!loaded||$('help-dialog').open)return;
   if(MOVEMENT_KEYS.has(code)&&loaded&&(!started||paused)){startDrive(code);return;}
   if(code==='KeyF')toggleFullscreen();
   if(code==='KeyC')changeCamera();
@@ -76,12 +80,16 @@ addEventListener('blur',()=>{if(started&&!paused)pause(true);});document.addEven
 async function bootstrap(){
   try{
     view=new DrivingScene($('viewport'),session);
-    await view.load((percent,message)=>{$('load-progress').style.width=`${percent}%`;$('load-percent').textContent=`${percent}%`;$('loading-status').textContent=message;});
+    await view.load((percent,message)=>{loadingScreen.update(Math.min(percent,99),message);$('load-progress').style.width=`${percent}%`;$('load-percent').textContent=`${percent}%`;$('loading-status').textContent=message;});
     hud=new HUD(session);view.cameraMode=preferences.camera;$('camera').innerHTML=`${['Chase','Cockpit','Hood'][preferences.camera]} <small>C</small>`;view.setQuality($('quality').value);view.car.setPaint($('paint').value);$('lighting').onchange({target:$('lighting')});
+    // Present the first real scene behind the fade, then enable driving inputs.
+    view.update(0,false);
+    await loadingScreen.finish();
+    launchRegions.forEach(region=>region.inert=false);
     loaded=true;$('drive').disabled=false;$('drive').querySelector('span').textContent='START YOUR ENGINE';hud.update();
     $('loading-status').textContent='Ready. Press W / ↑ or click Start your engine.';
     view.renderer.domElement.addEventListener('pointerdown',()=>{if(!$('help-dialog').open&&(!started||paused))startDrive();});
-  }catch(e){console.error(e);$('loading-status').textContent=/WebGL|context/i.test(e.message)?'WebGL 2 is required. Enable hardware acceleration or try another browser.':'Unable to load the simulator. Check your connection and retry.';$('loading-status').classList.add('error');$('retry').hidden=false;$('load-percent').textContent='';}
+  }catch(e){console.error(e);$('loading-status').textContent=/WebGL|context/i.test(e.message)?'WebGL 2 is required. Enable hardware acceleration or try another browser.':'Unable to load the simulator. Check your connection and retry.';$('loading-status').classList.add('error');$('retry').hidden=false;$('load-percent').textContent='';loadingScreen.fail($('loading-status').textContent);}
 }
 let hudElapsed=0,statsElapsed=0,frames=0;
 function frame(now){
