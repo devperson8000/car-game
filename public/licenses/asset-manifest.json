@@ -1,0 +1,61 @@
+{
+  "textures": [
+    {
+      "path": "public/textures/asphalt-color.jpg",
+      "bytes": 1227817,
+      "sha256": "64de6fa79370f43cbacd975be3034d651bb4816f88025f9891b8084ab2aa1621"
+    },
+    {
+      "path": "public/textures/asphalt-normal.jpg",
+      "bytes": 2766303,
+      "sha256": "f0cd2cbe15128e8169a054b85712e46f8e12da574e0fd4d36ea60156c6707844"
+    },
+    {
+      "path": "public/textures/asphalt-roughness.jpg",
+      "bytes": 1046855,
+      "sha256": "c6576a292972762db026c85955777a8594be8b2a22336d01f28592836e93d67c"
+    },
+    {
+      "path": "public/textures/grass-color.jpg",
+      "bytes": 1555513,
+      "sha256": "5fec0608a6b80e2ef09c2d2686a0f412536814d57c2f653bd7d6f22f2186ede5"
+    },
+    {
+      "path": "public/textures/grass-normal.jpg",
+      "bytes": 3171821,
+      "sha256": "73bbebe422022d26e3dfeb7ddeb4a5e2eebb113354c867ba76176aeb05899751"
+    },
+    {
+      "path": "public/textures/grass-roughness.jpg",
+      "bytes": 1763481,
+      "sha256": "a004c6714a0c852e69dd04db5560d9efadc5e03cf41dfc0d7f073dba721ba537"
+    },
+    {
+      "path": "public/textures/ground-color.jpg",
+      "bytes": 2341758,
+      "sha256": "32324397df89ef52a80307b8726aee818eac845d638a7df3898ec297988c2e4f"
+    },
+    {
+      "path": "public/textures/ground-normal.jpg",
+      "bytes": 3347646,
+      "sha256": "a9ccc8d430b2774a21f6c61e68bfa3b40a097df17e576ab5d29d8c5051f0cb59"
+    },
+    {
+      "path": "public/textures/ground-roughness.jpg",
+      "bytes": 1412663,
+      "sha256": "d53e8f562e6d08bfcac17ac064fb9520e216efaae4bb11cf645e11d2b4e52a5b"
+    },
+    {
+      "path": "public/textures/trees/ash.png",
+      "bytes": 181423,
+      "sha256": "5ec987db3829a839856c32c79b18a33a78f209e911cad55c65abfb77f30e2d29"
+    },
+    {
+      "path": "public/textures/trees/pine.png",
+      "bytes": 303684,
+      "sha256": "88be36a2387554ac4b7c7d1549eae454a37ad896e8e33a7d6ae5956bd169ab08"
+    }
+  ],
+  "tree_generator_commit": "dcf309bd86bd521083d9c70f01f2de45fdc7c457",
+  "tree_leaf_source": "@dgreenheck/ez-tree npm 1.1.0; hashes match upstream LFS objects"
+}
