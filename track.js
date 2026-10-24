@@ -32,9 +32,9 @@ function ribbon(track,offset,width,lift,sideTrim=0,colorize=false){
   const j=(i+1)%n,pt=pts[i],qt=pts[j],d=dir2(track,i),e=dir2(track,j);
   const edges=(point,unit)=>[[point[0]+unit[1]*offset,point[1]+lift,point[2]-unit[0]*offset],[point[0]+unit[1]*(offset+width),point[1]+lift,point[2]-unit[0]*(offset+width)]];
   const a=edges(pt,d),b=edges(qt,e);
-  const verts=[a[0],a[1],b[0],a[1],b[1],b[0]];
+  const verts=[a[0],b[0],a[1],a[1],b[0],b[1]];
   const tiling=track.step/5, v0=i*tiling,v1=(i+1)*tiling;
-  const vt=[[v0,0],[v0,1],[v1,0],[v0,1],[v1,1],[v1,0]];
+  const vt=[[v0,0],[v1,0],[v0,1],[v0,1],[v1,0],[v1,1]];
   const alt=i%12<6?[1,1,1]:[.89,.27,.19];
   for(let t=0;t<6;t++){
    p.set(verts[t],k);k+=3;uv.set(vt[t],u);u+=2;
@@ -75,10 +75,18 @@ export function createTrackWorld(scene,track,quality='high'){
  const cloud=[];for(let i=0;i<n;i+=Math.max(1,Math.floor(n/320))){const p=pts[i];cloud.push(p);}
  for(let i=0;i<vertex.count;i++){
   const x=vertex.getX(i)+xmid,z=vertex.getZ(i)+zmid;
-  let best=Infinity,height=pts[0][1];
-  for(const q of cloud){const dist=(q[0]-x)**2+(q[2]-z)**2;if(dist<best){best=dist;height=q[1];}}
-  const noise=Math.sin(x*.009)*2.5+Math.cos(z*.011)*2.6+Math.sin(x*.023+z*.012)*1.2;
-  vertex.setY(i,height-4.5+noise);
+  // Blend nearby altitude samples so a low-resolution terrain grid does not
+  // create abrupt cliffs or protrude through the asphalt on steep sections.
+  let d0=Infinity,d1=Infinity,d2=Infinity,h0=pts[0][1],h1=h0,h2=h0;
+  for(const q of cloud){
+   const dist=(q[0]-x)**2+(q[2]-z)**2;
+   if(dist<d0){d2=d1;h2=h1;d1=d0;h1=h0;d0=dist;h0=q[1];}
+   else if(dist<d1){d2=d1;h2=h1;d1=dist;h1=q[1];}
+   else if(dist<d2){d2=dist;h2=q[1];}
+  }
+  const smoothHeight=h0*.58+h1*.29+h2*.13;
+  const noise=(Math.sin(x*.009)+Math.cos(z*.011)+Math.sin(x*.023+z*.012))*.55;
+  vertex.setY(i,Math.min(smoothHeight,Math.min(h0,h1,h2)+6)-8+noise);
  }
  geo.computeVertexNormals();
  geo.translate(xmid,0,zmid);
