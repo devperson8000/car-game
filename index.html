@@ -1,34 +1,41 @@
 <!doctype html>
 <html lang="en">
 <head>
-<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<meta name="theme-color" content="#080c12"><meta name="description" content="APEX — a realistic 3D Nürburgring driving experience">
-<link rel="icon" href="./favicon.svg" type="image/svg+xml">
-<title>APEX — Nürburgring Drive</title>
-<link rel="stylesheet" href="./style.css">
-
+  <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#101416"><meta name="description" content="Drive a detailed V8 concept sports car around the Nürburgring. A free browser driving simulator with real suspension, tire grip and responsive engine audio.">
+  <title>APEX / Alpine Pass</title><link rel="icon" href="/favicon.svg" type="image/svg+xml">
 </head>
 <body>
-<div id="game"></div>
-<div id="vignette"></div>
-<div id="hud" class="hidden">
-  <div class="topbar">
-    <div class="brand"><div class="symbol">A<span>∧</span></div><div><b>APEX</b><small>NÜRBURGRING DRIVE</small></div></div>
-    <div class="topcenter"><div class="toplabel">NORDSCHLEIFE <span class="topdot"></span> FREEDRIVE</div><div id="lapProgress">0.0 / 20.7 KM</div></div>
-    <div class="topright"><span id="weatherText">CLEAR SKY</span><span class="sep"></span><button id="cameraBtn" title="Switch camera (C)">CAM <b id="cameraName">CHASE</b></button><button id="menuBtn" title="Pause menu (Escape)">Ⅱ</button></div>
-  </div>
-  <div class="crosshair"></div>
-  <div class="bottomhud">
-    <div class="driveinfo"><span class="minor-label">DRIVE TELEMETRY</span><div class="steer-line"><span>GRIP</span><div class="meter"><div id="gripFill"></div></div><strong id="gripText">100%</strong></div><div class="steer-line"><span>THROTTLE</span><div class="meter"><div id="throttleFill"></div></div><strong id="throttleText">0%</strong></div><div class="assist"><span id="tcsStatus">TCS ON</span><span id="absStatus">ABS ON</span><span id="surfaceStatus">ASPHALT</span></div></div>
-    <div class="speedunit"><div class="rpm-label">ENGINE <span id="rpmText">900 RPM</span></div><div id="rpmBars" class="rpm-bars"></div><div class="speedline"><span id="speedValue">0</span><div class="units"><span>KM/H</span><b id="gearValue">N</b></div></div><div id="speedTip">PRESS W TO ACCELERATE</div></div>
-    <div class="mapcard" id="mapCard"><div class="maphead"><span>TRACK POSITION</span><span id="trackPercent">0%</span></div><canvas id="minimap" width="270" height="180"></canvas><div class="mapfoot"><span>20.7 KM</span><span>EIFEL, GERMANY</span></div></div>
-  </div>
-  <div id="toast" aria-live="polite"></div>
-  <div class="touch-controls"><div class="touch-steer"><button class="touch" data-control="left" aria-label="Steer left">◀</button><button class="touch" data-control="right" aria-label="Steer right">▶</button></div><div class="touch-pedals"><button class="touch brake" data-control="brake" aria-label="Brake">BRAKE</button><button class="touch accelerator" data-control="throttle" aria-label="Accelerate">GAS</button></div></div>
-</div>
-<div id="splash" class="splash"><div class="hero-top"><div class="brand"><div class="symbol">A<span>∧</span></div><div><b>APEX</b><small>THE DRIVING EXPERIENCE</small></div></div><div class="edition">NORDSCHLEIFE / 2026</div></div><div class="hero-content"><div class="eyebrow"><i></i> THE ULTIMATE DRIVING PLAYGROUND</div><h1>FEEL THE<br><em>EDGE.</em></h1><p>20.7 kilometres of asphalt. Over 150 corners.<br>One machine. No distractions.</p><button id="startBtn" class="primary">ENTER DRIVE <span>↗</span></button><div id="loadStatus">INITIALISING SIMULATION...</div></div><div class="hero-footer"><span>REAL ROAD GEOMETRY</span><span>RESPONSIVE HANDLING</span><span>IMMERSIVE 3D SOUND</span></div></div>
-<div id="pause" class="pause hidden"><div class="pause-panel"><div class="eyebrow">APEX / DRIVER MENU</div><h2>PAUSED<span>.</span></h2><button id="resumeBtn" class="primary">RESUME DRIVE ↗</button><div class="option"><label for="qualitySelect">GRAPHICS</label><select id="qualitySelect"><option value="high">HIGH / QUALITY</option><option value="medium">MEDIUM / BALANCED</option><option value="low">LOW / PERFORMANCE</option></select></div><div class="option"><label for="volumeInput">AUDIO</label><input id="volumeInput" type="range" min="0" max="100" value="65"></div><div class="option"><label for="assistSelect">TRACTION CONTROL</label><select id="assistSelect"><option value="on">ON</option><option value="off">OFF</option></select></div><div class="menubuttons"><button id="resetBtn">RESET TO TRACK</button><button id="weatherBtn">CHANGE WEATHER</button></div><p class="hint">WASD / ARROWS — DRIVE · SPACE — HANDBRAKE<br>C — CAMERA · N — WEATHER · R — RESET · ESC — MENU<br>GAMEPAD AND TOUCH CONTROLS SUPPORTED</p><p class="credits">TRACK © OPENSTREETMAP CONTRIBUTORS · CAR © KHRONOS GROUP<br>NOT AFFILIATED WITH NÜRBURGRING OR ITS OWNERS</p></div></div>
-<div id="loading" class="loadbar"><span id="loadingText">PREPARING THE CIRCUIT</span><div class="loadtrack"><div id="loadingFill"></div></div></div>
-<script type="module" src="./game.js"></script>
-</body>
-</html>
+<div id="viewport" aria-label="3D driving simulator"></div>
+<div class="vignette"></div>
+<header class="topbar"><a class="wordmark" href="/" aria-label="APEX home">APEX<span> / </span><small>DRIVING EXPERIENCE</small></a><div class="session-tag" id="route-tag"><i></i> ALPINE PASS <span>SCENIC ROUTE</span></div></header>
+<main>
+  <section id="menu" class="menu" data-mode="start" aria-label="Driving session">
+    <div class="eyebrow"><span class="red-line"></span> THE LONG WAY HOME / SCENIC MOUNTAIN DRIVE</div>
+    <h1>Find your<br><em>limit.</em></h1>
+    <p class="intro">One car. A mountain road. Endless possibility.<br>Make every corner count.</p>
+    <div class="car-label"><span class="car-mark">GT</span><div><strong>APEX GT</strong><span>4.0 V8 · REAR-WHEEL DRIVE</span></div><span class="spec-label">8,500<span>RPM</span></span></div>
+    <div class="session-options"><label>ROUTE<select id="route"><option value="mountain">Alpine Pass</option><option value="nordschleife">Nordschleife</option></select></label>
+      <label>LIGHT<select id="lighting"><option value="day">Eifel daylight</option><option value="golden">Golden hour</option><option value="overcast">Overcast</option></select></label>
+      <label>GRAPHICS<select id="quality"><option value="high">High</option><option value="balanced" selected>Balanced</option><option value="low">Performance</option></select></label>
+      </div><div class="paint-row"><label class="paint-label">PAINT<input id="paint" type="color" value="#b8172e" aria-label="Car paint color"></label>
+    </div>
+    <button id="drive" class="drive-button" disabled><span>PREPARING YOUR DRIVE</span><b>↗</b></button>
+    <div class="loading-row"><span id="loading-status" role="status">Loading the circuit…</span><span id="load-percent">0%</span></div><div class="load-track"><div id="load-progress"></div></div>
+    <button id="retry" hidden>Retry loading</button>
+    <div class="key-hint"><span><kbd>W A S D</kbd> Drive</span><span><kbd>C</kbd> Camera</span><span><kbd>R</kbd> Recover</span></div>
+    <p class="menu-foot">HEADPHONES RECOMMENDED <span>·</span> KEYBOARD / GAMEPAD / TOUCH</p>
+  </section>
+  <section id="hud" hidden aria-label="Live driving telemetry">
+    <div class="lap-panel"><div class="eyebrow">LAP <span id="lap-number">01</span> <span class="live-dot"></span> LIVE SESSION</div><div id="lap-time">00:00.000</div><div class="best-lap">PERSONAL BEST <span id="best-lap">— — : — —</span></div></div>
+    <div class="sector-panel"><span class="eyebrow">CURRENT SECTOR</span><strong id="sector">Döttinger Höhe</strong><span id="distance">0.00 / 20.71 KM</span></div>
+    <div class="map-panel"><canvas id="minimap" width="360" height="280" aria-label="Circuit map with current position"></canvas><div><i></i> <span id="map-name">ALPINE PASS</span><span id="map-length"></span></div></div>
+    <div class="instrument-panel"><div class="rev-labels"><span>RPM × 1000</span><span id="rpm-number">0.9</span></div><div id="revs" class="revs"></div><div class="speed-row"><div class="gear-block"><span id="gear">1</span><small id="transmission">AUTO</small></div><div class="speed-block"><strong id="speed">0</strong><span>KM/H</span></div></div><div class="pedals"><span>BRK</span><div><b id="brake-meter"></b></div><span>THR</span><div><b id="throttle-meter"></b></div></div><div class="assists"><button id="tc" aria-pressed="true">TC ON</button><button id="abs" aria-pressed="true">ABS ON</button><span id="surface">ASPHALT</span></div></div>
+    <div id="toast" role="status"></div>
+    <div id="touch-ui"><div class="touch-steering"><button data-control="left" aria-label="Steer left">‹</button><button data-control="right" aria-label="Steer right">›</button></div><div class="touch-pedals"><button data-control="brake" aria-label="Brake">BRAKE</button><button data-control="throttle" aria-label="Accelerate">GAS</button></div></div>
+  </section>
+</main>
+<footer><div class="footer-left"><span class="weather-label"><i></i><span id="weather-text">18°C · DRY TARMAC</span></span><span id="fps-label"></span><span id="audio-status" data-state="idle">V8 AUDIO</span><a href="/credits.html" target="_blank" rel="noopener">CREDITS</a></div><nav aria-label="Simulator controls"><button id="camera" title="Change camera (C)">Chase <small>C</small></button><button id="sound" aria-pressed="false" title="Toggle sound">Sound on</button><button id="controls">Controls</button><button id="reset" title="Recover car (R)">Recover <small>R</small></button><button id="pause" title="Pause (Esc)">Pause <small>ESC</small></button></nav></footer>
+<dialog id="help-dialog"><button id="close-help" class="close-button" aria-label="Close controls">×</button><span class="eyebrow">DRIVER'S BRIEFING</span><h2>Make yourself at home.</h2><dl><dt>W / ↑</dt><dd>Accelerate</dd><dt>S / ↓</dt><dd>Brake · hold near standstill to reverse</dd><dt>A D / ← →</dt><dd>Steer</dd><dt>Space</dt><dd>Handbrake</dd><dt>C</dt><dd>Chase / cockpit / hood camera</dd><dt>R</dt><dd>Recover to the circuit</dd><dt>M · Q / E</dt><dd>Auto/manual · shift down/up</dd><dt>P / Esc</dt><dd>Pause and session settings</dd><dt>Gamepad</dt><dd>Left stick steer · RT throttle · LT brake · A handbrake</dd></dl><p>Ease onto the throttle. Brake before the corner, then feed in power as you unwind the steering. Grass has much less grip.</p><label class="touch-toggle"><input id="show-touch" type="checkbox"> Show touch controls</label><p class="fineprint">Fictional vehicle tuning. Synthesized engine audio. Real-world circuit layout; scenery is an approximation.</p></dialog>
+<script type="module" src="/src/main.js"></script>
+</body></html>
