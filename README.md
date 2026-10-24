@@ -41,6 +41,7 @@ Gamepad: analog left stick steering, RT throttle, LT brake, A handbrake. Keyboar
 
 ```sh
 npm test
+npm run test:route
 npm run build
 npm run preview -- --port 4173
 # In another terminal, with Chromium installed:

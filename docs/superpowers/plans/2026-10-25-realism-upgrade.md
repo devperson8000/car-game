@@ -41,3 +41,5 @@ Files: src/audio.js, public/credits.html, README.md, tests/browser.mjs, vercel.j
 ## Delivery evidence
 
 Fresh npm ci, 19 unit tests and production build passed. Browser suite passed both routes, golden-hour detailed trees, car/track assets, driving/braking/reset, cameras, pause, worklet audio and responsive controls with zero page errors or failed requests. Direct Vercel access is unavailable in this session; a source push alone does not verify deployment. No hardware frame-rate guarantee or full manual lap is claimed.
+
+A conservative headless driver additionally traversed the complete 5.04 km Alpine Pass: 5,062.93 m traveled in 353.05 simulated seconds, maximum lateral offset 2.89 m, no off-road frames and no rollovers. Reproduce with npm run test:route. This does not establish hardware frame rate or manual high-speed lap behavior.
