@@ -1,5 +1,7 @@
+import {SampleEngine} from './engine-samples.js';
 // Engine worklet adapted by bwchoi from Antonio-R1's MIT waveguide model.
-// Tire/road/wind/shift/impact layers below are synthesis, not recorded samples.
+// The default engine uses a CC BY 4.0 multi-RPM V8 sample bank.
+// Tire/road/wind/shift/impact layers and the fallback engine are synthesized.
 export class DrivingAudio{
   constructor(){this.ctx=null;this.muted=false;this.active=false;this.ready=false;this.lastGear=null;this.lastScrape=0;}
   async start(spec){
@@ -24,9 +26,14 @@ export class DrivingAudio{
     this.wind=noise('lowpass',700);this.road=noise('lowpass',240);this.scrub=noise('bandpass',650);this.rain=noise('highpass',1000);
     this.squeal=ctx.createOscillator();this.squeal.type='triangle';this.squeal.frequency.value=1400;
     this.squealGain=ctx.createGain();this.squealGain.gain.value=0;this.squeal.connect(this.squealGain);this.squealGain.connect(this.master);this.squeal.start();
-    await ctx.audioWorklet.addModule(new URL('./vendor/engine-processor.js',import.meta.url));
-    this.engine=new AudioWorkletNode(ctx,'engine-processor',{numberOfInputs:0,numberOfOutputs:1,outputChannelCount:[1],processorOptions:spec.engine_model});
-    this.engineGain=ctx.createGain();this.engineGain.gain.value=.75;this.engine.connect(this.engineGain);this.engineGain.connect(this.master);this.ready=true;
+    try{this.sampleEngine=await SampleEngine.create(ctx,this.master);}
+    catch(e){console.warn('V8 samples unavailable; using synthesized engine:',e.message);}
+    if(!this.sampleEngine){
+      await ctx.audioWorklet.addModule(new URL('./vendor/engine-processor.js',import.meta.url));
+      this.engine=new AudioWorkletNode(ctx,'engine-processor',{numberOfInputs:0,numberOfOutputs:1,outputChannelCount:[1],processorOptions:spec.engine_model});
+      this.engineGain=ctx.createGain();this.engineGain.gain.value=.75;this.engine.connect(this.engineGain);this.engineGain.connect(this.master);
+    }
+    this.ready=true;
     await ctx.resume();
   }
   setActive(active){this.active=active;if(!this.ctx)return;if(active)this.ctx.resume();else this.ctx.suspend();}
@@ -35,12 +42,15 @@ export class DrivingAudio{
     n.buffer=this.noiseBuffer;f.type='bandpass';f.frequency.value=frequency;g.gain.setValueAtTime(amount,c.currentTime);g.gain.exponentialRampToValueAtTime(.0001,c.currentTime+duration);
     n.connect(f);f.connect(g);g.connect(this.master);n.start();n.stop(c.currentTime+duration);n.onended=()=>{n.disconnect();f.disconnect();g.disconnect();};
   }
-  update(v,weather){
+  update(v,weather,cameraMode=0){
     if(!this.ctx||!this.ready||!this.active)return;
     const t=this.ctx.currentTime,set=(p,value,rate=.06)=>p.setTargetAtTime(value,t,rate);
     set(this.master.gain,this.muted?0:.48);
-    set(this.engine.parameters.get('rpm'),v.rpm,.025);set(this.engine.parameters.get('throttle'),v.ctrl.throttle,.025);this.engine.parameters.get('redline').value=v.spec.engine.redline;
-    set(this.engineGain.gain,.65+v.ctrl.throttle*.25);
+    if(this.sampleEngine)this.sampleEngine.update(v,cameraMode);
+    else{
+      set(this.engine.parameters.get('rpm'),v.rpm,.025);set(this.engine.parameters.get('throttle'),v.ctrl.throttle,.025);this.engine.parameters.get('redline').value=v.spec.engine.redline;
+      set(this.engineGain.gain,.65+v.ctrl.throttle*.25);
+    }
     const speed=Math.abs(v.speed),slip=Math.max(...v.wheels.filter(w=>w.contact).map(w=>Math.abs(w.slipAngle)),0);
     set(this.wind.gain.gain,Math.min(.22,(speed/70)**2*.2));set(this.wind.filter.frequency,400+speed*12);
     set(this.road.gain.gain,Math.min(.13,speed*.0015)*(v.onTrack?1:1.8));

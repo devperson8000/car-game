@@ -228,9 +228,10 @@ export class Vehicle {
       }
     }
 
-    // during a launch the torque cap below limits traction, so don't also let the
-    // TC chop the throttle (double-limiting wastes the launch). Otherwise normal TC.
-    let thr = this.ctrl.throttle * (launching ? 1 : (1 - this.tcCut));
+    // A straight launch uses the axle cap and per-wheel slip governor below.
+    // A launch in a bend must also honor lateral-slip torque reduction.
+    const straightLaunch = launching && this.wheels.every(w => Math.abs(w.slipAngle) < 0.045);
+    let thr = this.ctrl.throttle * (straightLaunch ? 1 : (1 - this.tcCut));
     if (this.shiftTimer > 0) thr = 0;
     if (this.rpm >= ENG.redline) thr = 0;                          // limiter
     let tEngine = engineTorque(ENG, this.rpm) * thr;
@@ -397,7 +398,17 @@ export class Vehicle {
         this._addTorque(torque, contactPt, right, fy);
 
         // wheel spin with tire reaction (tyre force only — rolling drag is body-level)
-        this._spinWheel(w, tDrive[wi], tBrake[wi], fx, dt);
+        // Production-car style TC cuts positive drive torque as driven-wheel slip
+        // approaches the tire peak, including low-speed launches and corners.
+        // It does not add grip, clamp body motion, or interfere with handbraking.
+        let drive = tDrive[wi];
+        if (this.tc && !this.ctrl.handbrake && wi >= di && wi <= di + 1 && drive * vLong > 0 && Math.abs(vLong) > 2) {
+          const driveSlip = slipRatio * Math.sign(vLong);
+          // Reserve more of the friction circle for lateral force in a bend.
+          const targetSlip = 0.10 / (1 + (slipAngle / 0.08) ** 2);
+          drive *= THREE.MathUtils.clamp((targetSlip + 0.025 - driveSlip) / 0.04, 0, 1);
+        }
+        this._spinWheel(w, drive, tBrake[wi], fx, dt);
 
         // assists bookkeeping
         const driven = w.front === this.drivenFront;
@@ -406,8 +417,8 @@ export class Vehicle {
           // slamming the throttle shut: cut scales with slip EXCESS over target.
           if (slipRatio > 0.15) tcWorst = Math.max(tcWorst, (slipRatio - 0.15) * 3.0);
           // ESP: FWD plow / RWD power-oversteer — both fixed by easing throttle
-          const latEx = Math.abs(slipAngle) - (this.drivenFront ? 0.15 : 0.13);
-          if (latEx > 0 && Math.abs(vLong) > 6) tcWorst = Math.max(tcWorst, latEx * (this.drivenFront ? 0.9 : 1.2));
+          const latEx = Math.abs(slipAngle) - (this.drivenFront ? 0.10 : 0.06);
+          if (latEx > 0 && Math.abs(vLong) > 6) tcWorst = Math.max(tcWorst, latEx * (this.drivenFront ? 2.5 : 8));
         }
         if (slipRatio < -0.13 && this.ctrl.brake > 0.1) absActive = true;
         const drift = Math.abs(Math.sin(slipAngle)) * Math.min(1, vTot / 8);
@@ -438,7 +449,7 @@ export class Vehicle {
 
     // ---- TC
     if (this.tc) {
-      const target = tcWorst > 0 ? Math.min(0.80, tcWorst * 1.7) : 0;
+      const target = tcWorst > 0 ? Math.min(0.98, tcWorst * 1.7) : 0;
       this.tcCut += (target - this.tcCut) * Math.min(1, dt * 18);
     } else this.tcCut = 0;
 

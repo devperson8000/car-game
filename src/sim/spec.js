@@ -3,7 +3,8 @@
 export const SPEC = {
   name: 'APEX GT', mass: 1435, inertia: [2300, 2600, 620], comH: .40, drive: 'RWD',
   wheels: {
-    fz: -1.50, rz: .96, htF: .82, htR: .86,
+    // Rear track leaves tire sidewalls inside the measured GLB fenders.
+    fz: -1.50, rz: .96, htF: .82, htR: .84,
     attachY: .21, restLen: .28, radius: .34, iw: 1.4,
     kF: 62000, kR: 88000, cBF: 4100, cRF: 6700, cBR: 6200, cRR: 9900,
     maxC: .16, muF: 1.08, muR: 1.12,

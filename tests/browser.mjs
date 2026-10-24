@@ -64,5 +64,5 @@ try {
   assert.equal(await page.locator('#best-lap').textContent(),'— — : — —');assert.equal(await page.locator('#show-touch').isChecked(),true);
   await page.screenshot({path:'test-results/nordschleife.png'});
   assert.deepEqual(errors,[]);assert.deepEqual(failed,[]);
-  console.log('Browser checks passed: both routes, golden-hour detailed trees, model/track load, acceleration, braking/reset, three cameras, pause, audio worklet, controls, responsive rendering; zero page errors or failed HTTP responses.');
+  console.log('Browser checks passed: both routes, golden-hour detailed trees, model/track load, acceleration, braking/reset, three cameras, pause, engine audio, controls, responsive rendering; zero page errors or failed HTTP responses.');
 } catch(e){console.error('Browser errors:',errors,'HTTP failures:',failed);throw e;} finally {await browser.close();}
