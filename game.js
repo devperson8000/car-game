@@ -12,7 +12,7 @@ const WEATHER=['clear','golden','rain','night'];
 const CAMERAS=['CHASE','HOOD','COCKPIT'];
 let track,world,car,physics=new DrivingPhysics(),audio=new EngineAudio();
 let ready=false,playing=false,paused=false,requested=false,weather='clear',camMode=0,showMap=true,quality=localStorage.getItem('apex-quality')||(matchMedia('(pointer:coarse)').matches||navigator.hardwareConcurrency<=4?'low':'medium'),assist=true;
-let lastFrame=performance.now(),accumulator=0,prevPadCamera=false,toastTimeout=0,lastHud=0,lastMap=0,showModel=false;
+let lastFrame=performance.now(),accumulator=0,prevPadCamera=false,toastTimeout=0,lastHud=0,lastMap=0,showModel=false,cameraSnap=true;
 const keys=new Set(),touch={left:false,right:false,throttle:false,brake:false};
 let steerPad=0,throttlePad=0,brakePad=0,handbrakePad=false;
 const renderer=new THREE.WebGLRenderer({antialias:quality==='high',powerPreference:'high-performance',alpha:false});
@@ -80,8 +80,8 @@ function applyWeather(){
  notify($('weatherText').textContent);
 }
 function changeWeather(){weather=WEATHER[(WEATHER.indexOf(weather)+1)%WEATHER.length];applyWeather();}
-function setCamera(i){camMode=(i+CAMERAS.length)%CAMERAS.length;$('cameraName').textContent=CAMERAS[camMode];notify(CAMERAS[camMode]+' CAMERA');}
-function reset(){if(!ready)return;physics.spawn(track,0);notify('RETURNED TO THE START LINE');}
+function setCamera(i){camMode=(i+CAMERAS.length)%CAMERAS.length;cameraSnap=true;$('cameraName').textContent=CAMERAS[camMode];notify(CAMERAS[camMode]+' CAMERA');}
+function reset(){if(!ready)return;physics.spawn(track,0);cameraSnap=true;notify('RETURNED TO THE START LINE');}
 function setPause(value){
  if(!playing)return;paused=value;$('pause').classList.toggle('hidden',!paused);
  if(!paused)keys.clear();else {keys.clear();for(const k in touch)touch[k]=false;}
@@ -113,21 +113,35 @@ function updateCamera(dt){
  }else if(camMode===0){
   const v=Math.abs(physics.speed);
   const back=8+Math.min(4,v*.05),height=3.5+v*.014;
-  cx=x-fx*back+rightX*physics.steer*.12;cy=y+height;cz=z-fz*back+rightZ*physics.steer*.12;
+  cx=x-fx*back+rightX*physics.steer*.12;
+  const behind=(physics.nearest-Math.max(3,Math.round(back/track.step))+track.points.length)%track.points.length;
+  cy=Math.max(y+height,track.points[behind][1]+2.3);
+  cz=z-fz*back+rightZ*physics.steer*.12;
   tx=x+fx*(4+v*.025);ty=y+1.65;tz=z+fz*(4+v*.025);desiredFov=clamp(64+v*.18,64,80);
  }else if(camMode===1){
-  cx=x+fx*1.85;cy=y+1.30;cz=z+fz*1.85;
-  tx=x+fx*25;ty=y+1.20;tz=z+fz*25;desiredFov=71;
+  // The bonnet camera is mounted to the vehicle, not smoothed through its body.
+  car.suspension.updateWorldMatrix(true,false);
+  const eye=car.suspension.localToWorld(new THREE.Vector3(0,1.44,2.04));
+  const aim=car.suspension.localToWorld(new THREE.Vector3(0,1.38,32));
+  cx=eye.x;cy=eye.y;cz=eye.z;tx=aim.x;ty=aim.y;tz=aim.z;desiredFov=71;
  }else{
-  cx=x+fx*.08+rightX*.04;cy=y+1.43;cz=z+fz*.11+rightZ*.04;
-  tx=x+fx*30;ty=y+1.40;tz=z+fz*30;desiredFov=74;
+  // Driver's eye below the roof, rigidly aligned to the moving cabin.
+  car.suspension.updateWorldMatrix(true,false);
+  const eye=car.suspension.localToWorld(new THREE.Vector3(0,1.34,.28));
+  const aim=car.suspension.localToWorld(new THREE.Vector3(0,1.22,30));
+  cx=eye.x;cy=eye.y;cz=eye.z;tx=aim.x;ty=aim.y;tz=aim.z;desiredFov=71;
  }
- const targetPosition=new THREE.Vector3(cx,cy,cz),smoothing=!playing?3:camMode===0?5.3:24;
- if(camera.position.lengthSq()<.0001)camera.position.copy(targetPosition);
- camera.position.lerp(targetPosition,smooth(smoothing,dt));
+ const targetPosition=new THREE.Vector3(cx,cy,cz);
+ // Snap between views and on respawn rather than flying through the model.
+ if(cameraSnap||(playing&&camMode!==0)||camera.position.distanceToSquared(targetPosition)>28*28){
+  camera.position.copy(targetPosition);cameraSnap=false;
+ }else{
+  camera.position.lerp(targetPosition,smooth(!playing?3:9.0,dt));
+ }
  camera.lookAt(tx,ty,tz);
- if(camMode===2&&playing){camera.rotateZ(physics.roll*.10);}
- camera.fov=THREE.MathUtils.lerp(camera.fov,desiredFov,smooth(3,dt));camera.updateProjectionMatrix();
+ // Body-mounted cameras already inherit pitch and roll.
+ const fov=THREE.MathUtils.lerp(camera.fov,desiredFov,smooth(4,dt));
+ if(Math.abs(camera.fov-fov)>.001){camera.fov=fov;camera.updateProjectionMatrix();}
  sky.position.copy(camera.position);
 }
 function updateRain(dt){
@@ -178,7 +192,7 @@ $('resumeBtn').addEventListener('click',()=>setPause(false));
 $('resetBtn').addEventListener('click',()=>{reset();setPause(false);});
 $('weatherBtn').addEventListener('click',changeWeather);
 $('startBtn').addEventListener('click',()=>{requested=true;audio.start().catch(err=>console.warn('Audio unavailable:',err));if(ready)begin();else $('loadStatus').textContent='WAITING FOR CIRCUIT DATA…';});
-function begin(){if(!ready)return;playing=true;paused=false;$('splash').classList.add('hidden');$('hud').classList.remove('hidden');$('pause').classList.add('hidden');notify('WELCOME TO THE NORDSCHLEIFE');}
+function begin(){if(!ready)return;playing=true;paused=false;cameraSnap=true;$('splash').classList.add('hidden');$('hud').classList.remove('hidden');$('pause').classList.add('hidden');notify('WELCOME TO THE NORDSCHLEIFE');}
 window.addEventListener('keydown',e=>{
  if(['ArrowUp','ArrowDown','ArrowLeft','ArrowRight','Space'].includes(e.code))e.preventDefault();
  if(e.repeat&&['KeyC','KeyN','KeyR','KeyM','Escape'].includes(e.code))return;
