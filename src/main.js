@@ -16,6 +16,10 @@ const preferences=loadPreferences(storage),save=(key,value)=>savePreference(stor
 const route=preferences.route;$('route').value=route;
 $('boot-route').textContent=route==='mountain'?'ALPINE PASS / THE SCENIC ROUTE':'NORDSCHLEIFE / THE GREEN HELL';
 const session=new Session(route),audio=new DrivingAudio();let view,hud,loaded=false,started=false,paused=true,last=performance.now(),toastTimer,helpResume=false;
+session.vehicle.auto=preferences.transmission!=='manual';
+$('gearbox').value=preferences.transmission;
+function setTransmission(mode){session.vehicle.auto=mode!=='manual';$('gearbox').value=session.vehicle.auto?'auto':'manual';save('apex-transmission',$('gearbox').value);hud?.update();}
+$('gearbox').onchange=e=>setTransmission(e.target.value);
 session.paused=true;session.laps.best=readBestLap(storage,route);audio.muted=preferences.muted;
 $('sound').setAttribute('aria-pressed',String(audio.muted));$('sound').textContent=audio.muted?'Sound off':'Sound on';
 const launchTitle=$('menu-title').innerHTML,launchIntro=$('menu-intro').innerHTML;let completedLaps=0;
@@ -36,8 +40,10 @@ const input=new Controls(code=>{
   if(code==='KeyC')changeCamera();
   if(code==='KeyR'&&loaded){session.reset();input.clear();view.snap=true;notify('Recovered to the circuit · lap restarted');}
   if(['Escape','KeyP'].includes(code)&&started&&!$('help-dialog').open)pause(!paused);
-  if(code==='KeyM'){session.vehicle.auto=!session.vehicle.auto;notify(session.vehicle.auto?'Automatic gearbox':'Manual · E upshift / Q downshift');}
-  if(code==='KeyE')session.vehicle.shiftUp();if(code==='KeyQ')session.vehicle.shiftDown();
+  if(code==='KeyM'){setTransmission(session.vehicle.auto?'manual':'auto');notify(session.vehicle.auto?'Automatic gearbox':'Manual · E upshift / Q downshift');}
+  if(started&&!paused&&!session.vehicle.auto){
+    if(code==='KeyE')session.vehicle.shiftUp();if(code==='KeyQ')session.vehicle.shiftDown();
+  }
 });
 function changeCamera(){if(!view||!loaded)return;view.cameraMode=(view.cameraMode+1)%3;view.snap=true;save('apex-camera',view.cameraMode);$('camera').innerHTML=`${['Chase','Cockpit','Hood'][view.cameraMode]} <small>C</small>`;}
 async function enableAudio(){
