@@ -18,7 +18,7 @@ export class HUD{
   project(x,z){const b=this.bounds,s=Math.min(320/(b.x1-b.x0),240/(b.z1-b.z0));return [180+(x-(b.x0+b.x1)/2)*s,140+(z-(b.z0+b.z1)/2)*s];}
   update(){
     const {vehicle:v,laps,track}=this.session;
-    $('speed').textContent=Math.round(v.speedKmh);$('gear').textContent=v.gearLabel;$('transmission').textContent=v.auto?'AUTO':'MANUAL';
+    $('speed').textContent=Math.round(v.speedKmh);$('gear').textContent=v.gearLabel;$('transmission').textContent=v.auto?'AUTO':'MANUAL · Q / E';
     $('rpm-number').textContent=(v.rpm/1000).toFixed(1);this.segments.forEach((el,i)=>el.classList.toggle('on',i<v.rpm/v.spec.engine.redline*28));
     $('throttle-meter').style.width=`${v.ctrl.throttle*100}%`;$('brake-meter').style.width=`${v.ctrl.brake*100}%`;
     $('steering-meter').style.left=`${(v.ctrl.steer+1)*50}%`;$('steering').setAttribute('aria-valuenow',String(Math.round(v.ctrl.steer*100)));

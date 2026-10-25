@@ -19,3 +19,7 @@ test('blocked browser storage does not break settings or lap completion',()=>{
  const s={getItem(){throw Error('blocked');},setItem(){throw Error('blocked');}};
  assert.equal(loadPreferences(s).quality,'balanced');assert.equal(saveBestLap(s,'mountain',300),300);assert.equal(readBestLap(s,'mountain'),null);
 });
+
+test('manual transmission preference survives reload and rejects invalid values',()=>{
+ const s=storage();assert.equal(loadPreferences(s).transmission,'auto');savePreference(s,'transmission','manual');assert.equal(loadPreferences(s).transmission,'manual');savePreference(s,'transmission','broken');assert.equal(loadPreferences(s).transmission,'auto');
+});

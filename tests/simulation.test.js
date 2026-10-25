@@ -46,3 +46,8 @@ test('reverse start-line crossings and resets cannot set best lap',()=>{
   assert.equal(t.completed,0);assert.equal(t.best,null);
   t.reset(500);t.update(0,1);assert.equal(t.completed,0);
 });
+
+test('manual holds the selected gear instead of automatically upshifting',()=>{
+ const s=new Session();s.vehicle.auto=false;for(let i=0;i<360;i++)s.advance(1/60,{throttle:1});assert.equal(s.vehicle.gear,1);
+ s.vehicle.shiftUp();assert.equal(s.vehicle.gear,2);for(let i=0;i<60;i++)s.advance(1/60,{});s.vehicle.shiftDown();assert.equal(s.vehicle.gear,1);
+});

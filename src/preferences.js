@@ -1,5 +1,5 @@
-const choices={route:['mountain','nordschleife'],quality:['high','balanced','low'],light:['day','golden','overcast','rain']};
-const defaults={route:'mountain',quality:'balanced',light:'day',paint:'#b8172e',muted:false,touch:null,camera:0};
+const choices={transmission:['auto','manual'],route:['mountain','nordschleife'],quality:['high','balanced','low'],light:['day','golden','overcast','rain']};
+const defaults={transmission:'auto',route:'mountain',quality:'balanced',light:'day',paint:'#b8172e',muted:false,touch:null,camera:0};
 function read(storage,key){try{return storage?.getItem(`apex-${key}`)??null;}catch{return null;}}
 export function savePreference(storage,key,value){try{storage?.setItem(`apex-${key}`,String(value));}catch{/* Preferences are optional in private browsing. */}}
 export function loadPreferences(storage){
