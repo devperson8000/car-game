@@ -15,9 +15,10 @@ export function bindWheel(root,node){
 }
 export class CarView{
   constructor(){this.group=new THREE.Group();this.wheels=[];this.paintMaterials=[];this.brakeMaterials=[];this.glassMaterials=new Set();this.inverse=new THREE.Quaternion();this.temp=new THREE.Vector3();}
-  async load(){
-    const gltf=await new GLTFLoader().loadAsync('/models/car-concept.glb');
-    const model=this.model=gltf.scene;model.scale.setScalar(.88);model.rotation.y=Math.PI;model.position.set(0,-.40,-.19);
+  async load(definition){
+    const gltf=await new GLTFLoader().loadAsync(definition?.model??'/models/car-concept.glb');
+    const model=this.model=gltf.scene;
+    if(!definition?.normalized){model.scale.setScalar(.88);model.rotation.y=Math.PI;model.position.set(0,-.40,-.19);}
     this.group.add(model);this.group.updateMatrixWorld(true);
     model.traverse(o=>{
       if(!o.isMesh)return;o.castShadow=true;o.receiveShadow=true;
@@ -38,6 +39,7 @@ export class CarView{
     const point=wheel?wheel.getWorldPosition(new THREE.Vector3()):new THREE.Vector3(-.4,.4,-.3);
     this.cockpitEye=point.clone().add(new THREE.Vector3(0,.28,.42));
     this.cockpitEye.y=Math.min(this.cockpitEye.y,.57);
+    if(definition?.normalized)this.cockpitEye=new THREE.Vector3(...(definition.cockpitEye??[-.32,.80,.25]));
     this.steering=model.getObjectByName('InteriorSteeringCylinder');this.steeringBase=this.steering?.quaternion.clone();
     this.setPaint('#b8172e');return this;
   }

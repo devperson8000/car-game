@@ -1,0 +1,74 @@
+[
+  {
+    "rpm": 1000,
+    "source_file": "b-v8-1.wav",
+    "source_revision": "fe3ecd73fff671c3d75ecaeadccea5c5e6afe0d8",
+    "source_url": "https://raw.githubusercontent.com/stuntrally/stuntrally3/fe3ecd73fff671c3d75ecaeadccea5c5e6afe0d8/data/sounds/engines/b-v8-1.wav",
+    "source_sha256": "621518146dda188e1fcf20d2d0f1b403328cd7abcb346705e5ad8809318cb835",
+    "ogg_sha256": "9ac903ea19709bce1a778aadd0a13353cd0ec3c2ef7a195dcd3b9483514740c9",
+    "bytes": 37885
+  },
+  {
+    "rpm": 2000,
+    "source_file": "b-v8-2.wav",
+    "source_revision": "fe3ecd73fff671c3d75ecaeadccea5c5e6afe0d8",
+    "source_url": "https://raw.githubusercontent.com/stuntrally/stuntrally3/fe3ecd73fff671c3d75ecaeadccea5c5e6afe0d8/data/sounds/engines/b-v8-2.wav",
+    "source_sha256": "ea550121f4d659ae5f7d2b70a18891e7be4b2b89c8254858fd0667068fb9ceff",
+    "ogg_sha256": "dff78262e200ca468c57fb0f36db43d76869ea1aa8f359d24106842b42046287",
+    "bytes": 43467
+  },
+  {
+    "rpm": 3000,
+    "source_file": "b-v8-3.wav",
+    "source_revision": "fe3ecd73fff671c3d75ecaeadccea5c5e6afe0d8",
+    "source_url": "https://raw.githubusercontent.com/stuntrally/stuntrally3/fe3ecd73fff671c3d75ecaeadccea5c5e6afe0d8/data/sounds/engines/b-v8-3.wav",
+    "source_sha256": "04dbd9734204cfa4c74a7e652c9d81d908992780a34553ee2a58705cf8d1c484",
+    "ogg_sha256": "ccd9622794144827018e8944d45412f39afabd7cc49dd2cddd422e091950740f",
+    "bytes": 37184
+  },
+  {
+    "rpm": 4000,
+    "source_file": "b-v8-4.wav",
+    "source_revision": "fe3ecd73fff671c3d75ecaeadccea5c5e6afe0d8",
+    "source_url": "https://raw.githubusercontent.com/stuntrally/stuntrally3/fe3ecd73fff671c3d75ecaeadccea5c5e6afe0d8/data/sounds/engines/b-v8-4.wav",
+    "source_sha256": "06f33de1a99ba55d53a87e8f2d6ac5b2005d9bedba68965986f783402d4e488e",
+    "ogg_sha256": "1f6ba5c05b959ec8a44fb3f723474fa569c471f55f1fe1c23d2aa11a5c6234ea",
+    "bytes": 41109
+  },
+  {
+    "rpm": 5000,
+    "source_file": "b-v8-5.wav",
+    "source_revision": "fe3ecd73fff671c3d75ecaeadccea5c5e6afe0d8",
+    "source_url": "https://raw.githubusercontent.com/stuntrally/stuntrally3/fe3ecd73fff671c3d75ecaeadccea5c5e6afe0d8/data/sounds/engines/b-v8-5.wav",
+    "source_sha256": "f364c368318e0a7dc7afb7c3eb6a91e7870ba510798b2252db63694c09067acd",
+    "ogg_sha256": "5daa6c9bdfc8cf93290b092dc003f0de8e867c7e19eed1f7897b16177b59f983",
+    "bytes": 39266
+  },
+  {
+    "rpm": 6000,
+    "source_file": "b-v8-6.wav",
+    "source_revision": "fe3ecd73fff671c3d75ecaeadccea5c5e6afe0d8",
+    "source_url": "https://raw.githubusercontent.com/stuntrally/stuntrally3/fe3ecd73fff671c3d75ecaeadccea5c5e6afe0d8/data/sounds/engines/b-v8-6.wav",
+    "source_sha256": "3a50454c860b932abe0ce9c4ffb5ea4c95f49052dc135a6ec36eec1821f7f5b2",
+    "ogg_sha256": "d3323e54583f9c6778cf7354eed7e02e9424bd6b1a0c2c2d9c5aaab8cbb3c6dd",
+    "bytes": 36106
+  },
+  {
+    "rpm": 7000,
+    "source_file": "b-v8-7.wav",
+    "source_revision": "fe3ecd73fff671c3d75ecaeadccea5c5e6afe0d8",
+    "source_url": "https://raw.githubusercontent.com/stuntrally/stuntrally3/fe3ecd73fff671c3d75ecaeadccea5c5e6afe0d8/data/sounds/engines/b-v8-7.wav",
+    "source_sha256": "e4431b0dd4317f743f9a73f319f6fc48557e2359ba12d794509b726bdbee5856",
+    "ogg_sha256": "80543e0c530ade30e9d76a638b984d7584df51de802af565d976e91df33530da",
+    "bytes": 44546
+  },
+  {
+    "rpm": 8000,
+    "source_file": "b-v8-8.wav",
+    "source_revision": "fe3ecd73fff671c3d75ecaeadccea5c5e6afe0d8",
+    "source_url": "https://raw.githubusercontent.com/stuntrally/stuntrally3/fe3ecd73fff671c3d75ecaeadccea5c5e6afe0d8/data/sounds/engines/b-v8-8.wav",
+    "source_sha256": "bfdb28adea9a9a91ea8a706cdf98546bec9eac169cec1edd8da60ba5dda1c857",
+    "ogg_sha256": "49ff3f5c548ff4c867d5c4fd23da1b7cf7512acb2d42f27eaa396ea65283a9eb",
+    "bytes": 21959
+  }
+]

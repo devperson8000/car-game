@@ -1,0 +1,60 @@
+{
+  "coordinateSystem": "+x right, +y up, -z forward; meters; authored chassis/COM origin",
+  "bodyBounds": {
+    "min": [
+      -0.9781896471977234,
+      -0.13144636154174805,
+      -2.2916526794433594
+    ],
+    "max": [
+      0.9781884551048279,
+      1.1811400651931763,
+      2.1770999431610107
+    ]
+  },
+  "bodyDimensions": [
+    1.9563781023025513,
+    1.3125864267349243,
+    4.46875262260437
+  ],
+  "wheelOrder": [
+    "FL",
+    "FR",
+    "RL",
+    "RR"
+  ],
+  "wheelHubs": [
+    [
+      -0.79,
+      -0.07,
+      -1.275
+    ],
+    [
+      0.79,
+      -0.07,
+      -1.275
+    ],
+    [
+      -0.82,
+      -0.05,
+      1.275
+    ],
+    [
+      0.82,
+      -0.05,
+      1.275
+    ]
+  ],
+  "wheelRadius": 0.330494,
+  "wheelbase": 2.55,
+  "frontTrack": 1.58,
+  "rearTrack": 1.64,
+  "cockpitEye": [
+    -0.32,
+    0.78,
+    0.22
+  ],
+  "remoteTriangles": 29279,
+  "triangles": 111127,
+  "notes": "Origin follows authored chassis frame, an approximate COM rather than a manufacturer measurement. Wheel centers follow the upstream model fit; handling is calibrated separately."
+}

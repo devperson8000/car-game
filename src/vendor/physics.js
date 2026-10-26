@@ -357,7 +357,11 @@ export class Vehicle {
         const vc = S.tVc.copy(this.angVel).cross(S.p.copy(contactPt).sub(this.pos)).add(this.vel);
         const vLong = vc.dot(fwd), vLat = vc.dot(right);
 
-        const slipRatio = (w.omega * w.radius - vLong) / Math.max(Math.abs(vLong), 2.0);
+        // Regularize low-speed slip: a tiny velocity denominator makes the
+        // explicit tire/wheel feedback alternate between wheelspin and lockup.
+        // The 8 m/s floor keeps 240 Hz integration stable during a launch;
+        // normal slip ratios are unchanged above launch speeds.
+        const slipRatio = (w.omega * w.radius - vLong) / Math.max(Math.abs(vLong), 8.0);
         const slipAngle = Math.atan2(vLat, Math.max(Math.abs(vLong), 0.8));
         w.slipRatio = slipRatio; w.slipAngle = slipAngle;
 

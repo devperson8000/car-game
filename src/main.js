@@ -1,5 +1,6 @@
 import './style.css';
 import {LoadingScreen} from './loading.js';
+import {CARS,getCar} from './sim/cars.js';
 import {Session} from './sim/session.js';
 import {DrivingScene} from './scene.js';
 import {Controls,MOVEMENT_KEYS} from './input.js';
@@ -15,12 +16,18 @@ let storage;try{storage=localStorage;}catch{/* The game also works without brows
 const preferences=loadPreferences(storage),save=(key,value)=>savePreference(storage,key.replace(/^apex-/,''),value);
 const route=preferences.route;$('route').value=route;
 $('boot-route').textContent=route==='mountain'?'ALPINE PASS / THE SCENIC ROUTE':'NORDSCHLEIFE / THE GREEN HELL';
-const session=new Session(route),audio=new DrivingAudio();let view,hud,loaded=false,started=false,paused=true,last=performance.now(),toastTimer,helpResume=false;
+const selectedCar=getCar(preferences.car);
+const session=new Session(route,selectedCar.id),audio=new DrivingAudio();let view,hud,loaded=false,started=false,paused=true,last=performance.now(),toastTimer,helpResume=false;
 session.vehicle.auto=preferences.transmission!=='manual';
+$('car-select').replaceChildren(...CARS.map(car=>{const option=document.createElement('option');option.value=car.id;option.textContent=car.name;return option;}));
+$('car-select').value=selectedCar.id;
+$('car-select').onchange=e=>{save('apex-car',e.target.value);location.reload();};
+$('car-name').textContent=selectedCar.name;$('car-description').textContent=selectedCar.description;$('car-character').textContent=selectedCar.character;$('car-redline').textContent=selectedCar.spec.engine.redline.toLocaleString();
+$('boot-screen').querySelector('.boot-car-caption b').textContent=selectedCar.name;$('boot-engine').textContent=selectedCar.spec.audioBank==='boxer4'?' / FLAT-FOUR':' / V8';
 $('gearbox').value=preferences.transmission;
 function setTransmission(mode){session.vehicle.auto=mode!=='manual';$('gearbox').value=session.vehicle.auto?'auto':'manual';save('apex-transmission',$('gearbox').value);hud?.update();}
 $('gearbox').onchange=e=>setTransmission(e.target.value);
-session.paused=true;session.laps.best=readBestLap(storage,route);audio.muted=preferences.muted;
+session.paused=true;session.laps.best=readBestLap(storage,route,selectedCar.id);audio.muted=preferences.muted;
 $('sound').setAttribute('aria-pressed',String(audio.muted));$('sound').textContent=audio.muted?'Sound off':'Sound on';
 const launchTitle=$('menu-title').innerHTML,launchIntro=$('menu-intro').innerHTML;let completedLaps=0;
 function notify(message){$('toast').textContent=message;$('toast').classList.add('show');clearTimeout(toastTimer);toastTimer=setTimeout(()=>$('toast').classList.remove('show'),2300);}
@@ -47,7 +54,7 @@ const input=new Controls(code=>{
 });
 function changeCamera(){if(!view||!loaded)return;view.cameraMode=(view.cameraMode+1)%3;view.snap=true;save('apex-camera',view.cameraMode);$('camera').innerHTML=`${['Chase','Cockpit','Hood'][view.cameraMode]} <small>C</small>`;}
 async function enableAudio(){
-  try{await audio.start(session.vehicle.spec);audio.setActive(!paused);$('audio-status').dataset.state='ready';$('audio-status').textContent='V8 AUDIO';}
+  try{await audio.start(session.vehicle.spec);audio.setActive(!paused);$('audio-status').dataset.state='ready';$('audio-status').textContent=selectedCar.spec.audioBank==='boxer4'?'BOXER AUDIO':'V8 AUDIO';}
   catch(e){$('audio-status').dataset.state='failed';$('audio-status').textContent='AUDIO UNAVAILABLE';notify('Audio unavailable. Press Sound to retry.');console.warn('Audio initialization:',e.message);}
 }
 function startDrive(triggerKey){
@@ -64,7 +71,7 @@ $('reset').onclick=()=>{if(!loaded)return;session.reset();view.snap=true;input.c
 $('sound').onclick=()=>{audio.muted=!audio.muted;save('apex-muted',audio.muted);$('sound').setAttribute('aria-pressed',String(audio.muted));$('sound').textContent=audio.muted?'Sound off':'Sound on';if(!audio.ready&&!audio.muted)enableAudio();};
 $('tc').onclick=()=>session.vehicle.tc=!session.vehicle.tc;$('abs').onclick=()=>session.vehicle.abs=!session.vehicle.abs;
 $('quality').value=preferences.quality;$('quality').onchange=e=>{save('apex-quality',e.target.value);view?.setQuality(e.target.value);};
-$('paint').value=preferences.paint;$('paint').oninput=e=>{save('apex-paint',e.target.value);view?.car?.setPaint(e.target.value);};
+$('paint').value=preferences.paint;$('paint').oninput=e=>{save(selectedCar.id==='apex'?'apex-paint':`apex-paint-${selectedCar.id}`,e.target.value);view?.car?.setPaint(e.target.value);};
 $('lighting').innerHTML+='<option value="rain">Wet road</option>';
 $('lighting').value=preferences.light;
 $('lighting').onchange=e=>{save('apex-light',e.target.value);view?.setWeather(e.target.value);setWeatherGrip(e.target.value==='rain'?.7:1);$('weather-text').textContent=e.target.value==='rain'?'12°C · WET TARMAC':'18°C · DRY TARMAC';};
@@ -105,7 +112,7 @@ function frame(now){
     if(session.vehicle.rollover||session.vehicle.pos.y< -200){session.reset();view.snap=true;notify('Car recovered');}
   }
   if(session.laps.completed>completedLaps){
-    completedLaps=session.laps.completed;session.laps.best=saveBestLap(storage,route,session.laps.best);
+    completedLaps=session.laps.completed;session.laps.best=saveBestLap(storage,route,session.laps.best,selectedCar.id);
     notify(`${session.laps.last===session.laps.best?'Personal best':'Lap complete'} · ${formatTime(session.laps.last)}`);
   }
   view.update(dt,started&&!paused);

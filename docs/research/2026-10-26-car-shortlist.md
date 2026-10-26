@@ -1,6 +1,6 @@
 # Additional car asset research
 
-Research only; no cars have been integrated or handling profiles implemented.
+Initial research below. BRZ and BMW were subsequently integrated with separate models, physics and audio; BMW uncertain source textures/interior were replaced with original generated materials/cabin. See public/licenses/additional-cars.md for final shipped attribution. Veneno/Evo/Ferrari remain candidates.
 
 Sources inspected on 26 October 2026:
 - Stunt Rally 3 asset/attribution snapshot: `fe3ecd73fff671c3d75ecaeadccea5c5e6afe0d8`.

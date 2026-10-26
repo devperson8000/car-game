@@ -31,7 +31,7 @@ export class DrivingScene{
   }
   async load(progress){
     progress(12,'Loading detailed road materials…');
-    const [materials,car,hdr]=await Promise.all([loadMaterials(),new CarView().load(),new HDRLoader().loadAsync('/models/venice-sunset.hdr')]);
+    const [materials,car,hdr]=await Promise.all([loadMaterials(),new CarView().load(this.session.car),new HDRLoader().loadAsync('/models/venice-sunset.hdr')]);
     progress(65,'Building terrain and forest…');
     await new Promise(r=>setTimeout(r,30));
     hdr.mapping=THREE.EquirectangularReflectionMapping;
