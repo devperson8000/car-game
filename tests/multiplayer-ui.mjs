@@ -37,12 +37,12 @@ try {
   await page.evaluate(async()=>{
     ui.dialog.remove();ui.openButton.remove();
     for(const id of ['car-select','route','lighting','paint','gearbox']){const input=document.createElement('select');input.id=id;document.body.append(input);}
-    const {MultiplayerController}=await import('/src/multiplayer/controller.js');
-    let leaves=0;const controller=new MultiplayerController({session:{route:'mountain'},view:{},input:{clear(){}},storage:null,car:{id:'apex'},paint:'#112233',callbacks:{isDriving:()=>false,pause(){},resume(){},enter(){},leave(){leaves++;}}});
+    const {MultiplayerController}=await import('/src/multiplayer/controller.js');const {Session}=await import('/src/sim/session.js');
+    let leaves=0;const controller=new MultiplayerController({session:new Session('mountain'),view:{},input:{clear(){}},storage:null,car:{id:'apex'},paint:'#112233',callbacks:{isDriving:()=>false,pause(){},resume(){},enter(){},leave(){leaves++;}}});
     controller.message({type:'rejected',message:'Declined'});if(leaves!==0)throw Error('Rejected guest must keep solo session');
     controller.joined=true;controller.message({type:'left'});if(leaves!==1)throw Error('Accepted member must return to solo');
     controller.joined=true;controller.message({type:'error',message:'Session expired'});if(controller.joined||leaves!==2)throw Error('Expired reconnect must restore solo controls');
-    controller.inputPump.stop();controller.client.disconnect();
+    controller.inputPump.stop();clearInterval(controller.predictionTimer);controller.client.disconnect();
   });
   console.log('Multiplayer UI passed: create/join payloads, safe names, host approval, ready gate, mobile overflow, Escape and offline state.');
 } finally { await browser.close(); }

@@ -24,7 +24,7 @@ export class DrivingScene{
     this.hemi=new THREE.HemisphereLight(0xb4d0ef,0x6d7658,1.3);this.scene.add(this.hemi);
     this.scene.fog=new THREE.Fog(0xc6d0d3,250,2600);
     this.sunDirection=new THREE.Vector3();this.cameraMode=0;this.snap=true;this.clock=0;
-    this.target=new THREE.Vector3();this.desired=new THREE.Vector3();this.look=new THREE.Vector3();this.forward=new THREE.Vector3();this.sunOffset=new THREE.Vector3();
+    this.smoothedLook=new THREE.Vector3();this.target=new THREE.Vector3();this.desired=new THREE.Vector3();this.look=new THREE.Vector3();this.forward=new THREE.Vector3();this.sunOffset=new THREE.Vector3();
     this.reducedMotion=matchMedia('(prefers-reduced-motion: reduce)');
     this.setWeather('day');
     addEventListener('resize',()=>{this.camera.aspect=innerWidth/innerHeight;this.camera.updateProjectionMatrix();this.renderer.setSize(innerWidth,innerHeight);});
@@ -79,33 +79,34 @@ export class DrivingScene{
   }
   update(dt,driving){
     if(!this.car)return;
-    const v=this.session.vehicle;this.car.update(v);this.clock+=dt;
-    const f=this.forward.set(0,0,-1).applyQuaternion(v.quat);
+    const v=this.session.vehicle,pose=this.presentationPose,position=pose?.position||v.pos,orientation=pose?.quaternion||v.quat;this.car.update(v,pose);this.clock+=dt;
+    const f=this.forward.set(0,0,-1).applyQuaternion(orientation);
     if(!driving){
       const angle=.8+(this.reducedMotion.matches?0:Math.sin(this.clock*.08)*.18);
-      this.desired.set(-Math.sin(angle)*6,2.0,-Math.cos(angle)*6).applyQuaternion(v.quat).add(v.pos);
+      this.desired.set(-Math.sin(angle)*6,2.0,-Math.cos(angle)*6).applyQuaternion(orientation).add(position);
       // Position the car to the right of the launch card.
-      this.look.copy(v.pos).addScaledVector(new THREE.Vector3(1,0,0).applyQuaternion(v.quat),2.0);this.look.y+=.25;
+      this.look.copy(position).addScaledVector(new THREE.Vector3(1,0,0).applyQuaternion(orientation),2.0);this.look.y+=.25;
     }else if(this.cameraMode===0){
-      this.desired.copy(v.pos).addScaledVector(f,-(6.2+Math.min(2.5,Math.abs(v.speed)*.035)));this.desired.y+=2.5;
-      const ground=groundHeightAt(this.session.track,{},this.desired.x,this.desired.z,v.pos.y);
+      this.desired.copy(position).addScaledVector(f,-(6.2+Math.min(2.5,Math.abs(v.speed)*.035)));this.desired.y+=2.5;
+      const ground=groundHeightAt(this.session.track,{},this.desired.x,this.desired.z,position.y);
       this.desired.y=Math.max(this.desired.y,ground+1);
-      this.look.copy(v.pos).addScaledVector(f,3+Math.abs(v.speed)*.025);this.look.y+=.55;
+      this.look.copy(position).addScaledVector(f,3+Math.abs(v.speed)*.025);this.look.y+=.55;
     }else{
       const eye=this.cameraMode===1?this.car.cockpitEye:new THREE.Vector3(0,.65,-1.65);
-      this.desired.copy(eye).applyQuaternion(v.quat).add(v.pos);
+      this.desired.copy(eye).applyQuaternion(orientation).add(position);
       this.look.copy(this.desired).addScaledVector(f,30);this.look.y-=.15;
     }
+    const snapCamera=this.snap;
     if(this.snap||this.cameraMode!==0&&driving){this.camera.position.copy(this.desired);this.snap=false;}
     else this.camera.position.lerp(this.desired,1-Math.exp(-dt*7));
-    this.camera.lookAt(this.look);
+    if(driving&&this.cameraMode===0){if(snapCamera)this.smoothedLook.copy(this.look);else this.smoothedLook.lerp(this.look,1-Math.exp(-dt*10));this.camera.lookAt(this.smoothedLook);}else this.camera.lookAt(this.look);
     const fov=driving?(this.cameraMode===0?48+Math.min(10,Math.abs(v.speed)*.12):65):44;
     const nextFov=THREE.MathUtils.lerp(this.camera.fov,fov,1-Math.exp(-dt*4));
     if(Math.abs(this.camera.fov-nextFov)>.001){this.camera.fov=nextFov;this.camera.updateProjectionMatrix();}
-    this.sunOffset.copy(this.sunDirection).multiplyScalar(160);this.sun.position.copy(v.pos).add(this.sunOffset);this.sun.target.position.copy(v.pos);this.sun.target.updateMatrixWorld();
+    this.sunOffset.copy(this.sunDirection).multiplyScalar(160);this.sun.position.copy(position).add(this.sunOffset);this.sun.target.position.copy(position);this.sun.target.updateMatrixWorld();
     this.sky.position.copy(this.camera.position);
-    const q=this.session.track.query(v.pos.x,v.pos.z,{},v.pos.y);
-    if(q){this.contact.position.set(v.pos.x,q.y+.025,v.pos.z);this.contact.quaternion.setFromUnitVectors(new THREE.Vector3(0,0,1),new THREE.Vector3(q.nx,q.ny,q.nz));this.contact.rotateZ(-Math.atan2(f.x,-f.z));this.contact.visible=!v.airborne;}
+    const q=this.session.track.query(position.x,position.z,{},position.y);
+    if(q){this.contact.position.set(position.x,q.y+.025,position.z);this.contact.quaternion.setFromUnitVectors(new THREE.Vector3(0,0,1),new THREE.Vector3(q.nx,q.ny,q.nz));this.contact.rotateZ(-Math.atan2(f.x,-f.z));this.contact.visible=!v.airborne;}
     for(const mesh of this.forest||[]){const d=mesh.boundingSphere.center.distanceTo(this.camera.position),nearRange=this.quality==='high'?180:this.quality==='low'?0:110;mesh.visible=mesh.userData.nearTree?d<nearRange:d<(this.quality==='high'?1100:this.quality==='low'?450:700)&&(d>=nearRange||!mesh.material.alphaTest);mesh.castShadow=this.quality!=='low'&&d<100;}
     this.renderer.render(this.scene,this.camera);
   }

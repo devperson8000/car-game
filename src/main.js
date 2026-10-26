@@ -39,6 +39,7 @@ function pause(value,showMenu=true){
   $('menu-title').innerHTML=value?'Take a<br><em>breather.</em>':launchTitle;$('menu-intro').innerHTML=value?'Your drive is paused. Adjust your setup, then pick up where you left off.':launchIntro;
   $('drive').querySelector('span').textContent='RESUME DRIVE';$('pause').textContent=value?'Resume':'Pause';last=performance.now();
   if(view)view.snap=true;
+  if(value)hud?.update();
   if(!value)view?.renderer.domElement.focus({preventScroll:true});
 }
 const input=new Controls(code=>{
@@ -113,7 +114,7 @@ let hudElapsed=0,statsElapsed=0,frames=0;
 function frame(now){
   requestAnimationFrame(frame);const realDt=Math.max(0,(now-last)/1000),dt=Math.min(.1,realDt);last=now;
   if(!loaded)return;
-  const active=started&&!paused,controls=active?input.sample(dt,session.vehicle):{steer:0,throttle:0,brake:0,handbrake:false};
+  const active=started&&!paused,controls=active&&(!multiplayer?.joined||multiplayer.protocol!==2)?input.sample(dt,session.vehicle):{steer:0,throttle:0,brake:0,handbrake:false};
   const online=multiplayer?.advance(dt,controls,!active);
   if(active){if(!online)session.advance(dt,controls);audio.update(session.vehicle,view.weather,view.cameraMode);
     if(!online&&(session.vehicle.rollover||session.vehicle.pos.y< -200)){session.reset();view.snap=true;notify('Car recovered');}
@@ -122,8 +123,9 @@ function frame(now){
     completedLaps=session.laps.completed;session.laps.best=saveBestLap(storage,route,session.laps.best,selectedCar.id);
     notify(`${session.laps.last===session.laps.best?'Personal best':'Lap complete'} · ${formatTime(session.laps.last)}`);
   }
-  multiplayer?.render();
+  multiplayer?.render(dt);
   view.update(dt,started&&!paused);
+  multiplayer?.afterRender();
   hudElapsed+=dt;if(hudElapsed>.09){hud.update();hudElapsed=0;}
   statsElapsed+=realDt;frames++;if(statsElapsed>1){$('fps-label').textContent=`${Math.round(frames/statsElapsed)} FPS`;$('fps-label').title=`${view.renderer.info.render.calls} draw calls · ${view.renderer.info.render.triangles.toLocaleString()} triangles`;frames=0;statsElapsed=0;}
 }

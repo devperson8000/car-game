@@ -1,5 +1,23 @@
 import * as THREE from 'three';
 import {GLTFLoader} from 'three/addons/loaders/GLTFLoader.js';
+// Cache the immutable parsed prefab; instances own their material clones only.
+const prefabs=new Map();
+export function loadCarPrefab(url,load=url=>new GLTFLoader().loadAsync(url)){
+  if(!prefabs.has(url)){
+    const pending=Promise.resolve().then(()=>load(url)).catch(error=>{prefabs.delete(url);throw error;});
+    prefabs.set(url,pending);
+  }
+  return prefabs.get(url);
+}
+export function cloneCarPrefab(scene){
+  const model=scene.clone(true),materials=new Map();
+  model.traverse(o=>{
+    if(!o.isMesh)return;
+    const clone=m=>{if(!materials.has(m))materials.set(m,m.clone());return materials.get(m);};
+    o.material=Array.isArray(o.material)?o.material.map(clone):clone(o.material);
+  });
+  return {model,materials:new Set(materials.values())};
+}
 export function bindWheel(root,node){
   const center=node.getWorldPosition(new THREE.Vector3());
   const steer=new THREE.Group();steer.position.copy(center);root.add(steer);
@@ -16,8 +34,9 @@ export function bindWheel(root,node){
 export class CarView{
   constructor(){this.group=new THREE.Group();this.wheels=[];this.paintMaterials=[];this.brakeMaterials=[];this.glassMaterials=new Set();this.inverse=new THREE.Quaternion();this.temp=new THREE.Vector3();}
   async load(definition){
-    const gltf=await new GLTFLoader().loadAsync(definition?.model??'/models/car-concept.glb');
-    const model=this.model=gltf.scene;
+    const gltf=await loadCarPrefab(definition?.model??'/models/car-concept.glb');
+    const instance=cloneCarPrefab(gltf.scene);this.privateMaterials=instance.materials;
+    const model=this.model=instance.model;
     if(!definition?.normalized){model.scale.setScalar(.88);model.rotation.y=Math.PI;model.position.set(0,-.40,-.19);}
     this.group.add(model);this.group.updateMatrixWorld(true);
     model.traverse(o=>{
@@ -43,14 +62,15 @@ export class CarView{
     this.steering=model.getObjectByName('InteriorSteeringCylinder');this.steeringBase=this.steering?.quaternion.clone();
     this.setPaint('#b8172e');return this;
   }
-  setPaint(color){for(const m of new Set(this.paintMaterials))m.color.set(color);}
+  setPaint(color){for(const m of this.paintMaterials)m.color.set(color);}
   setQuality(quality){
     for(const m of this.glassMaterials){
       m.transmission=quality==='high'?1:0;m.transparent=quality!=='high';m.opacity=quality==='high'?1:.19;m.depthWrite=quality==='high';m.needsUpdate=true;
     }
   }
-  update(v){
-    this.group.position.copy(v.pos);this.group.quaternion.copy(v.quat);this.inverse.copy(v.quat).invert();
+  dispose(){this.group.removeFromParent();for(const m of this.privateMaterials??[])m.dispose();this.privateMaterials?.clear();}
+  update(v,pose){
+    this.group.position.copy(pose?.position??v.pos);this.group.quaternion.copy(pose?.quaternion??v.quat);this.inverse.copy(v.quat).invert();
     for(let i=0;i<this.wheels.length;i++){
       const render=this.wheels[i],w=v.wheels[i];
       if(w.worldPos.lengthSq()>1)render.steer.position.copy(w.worldPos).sub(v.pos).applyQuaternion(this.inverse);
