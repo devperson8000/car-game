@@ -21,3 +21,5 @@ footer{padding-bottom:max(14px,env(safe-area-inset-bottom))}.topbar{padding-top:
 @media(prefers-reduced-motion:reduce){*,*::before,*::after{animation:none!important;transition:none!important;scroll-behavior:auto!important}.drive-button:hover:not(:disabled){transform:none}}
 .steering-row{display:flex;align-items:center;gap:10px;margin-top:10px}.steering-row>span{font-size:7px;letter-spacing:1px;color:#c4cbbb}.steering-row>div{position:relative;height:3px;flex:1;background:#ffffff24}.steering-row>div:after{content:"";position:absolute;left:50%;top:-2px;width:1px;height:7px;background:#ffffff65}.steering-row b{position:absolute;left:50%;top:-2px;width:5px;height:7px;margin-left:-2px;border-radius:2px;background:#e9ecd9;z-index:1}
 @media(max-width:600px){.key-hint{gap:12px}.key-hint kbd{font-size:7px}.key-hint span{gap:4px}}
+
+.car-character{font-size:11px;line-height:1.6;color:#a8b4af;margin:0 0 5px;max-width:360px}.spec-label>b{font-weight:400}

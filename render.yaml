@@ -1,0 +1,13 @@
+services:
+  - type: web
+    name: apex-multiplayer
+    runtime: docker
+    plan: free
+    dockerfilePath: ./Dockerfile.multiplayer
+    healthCheckPath: /health
+    numInstances: 1
+    envVars:
+      - key: PORT
+        value: 3001
+      - key: ALLOWED_ORIGINS
+        sync: false

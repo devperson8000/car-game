@@ -1,0 +1,137 @@
+---- sounds from
+https://www.freesound.org/
+most edited by CryHam, in Audacity
+
+http://creativecommons.org/licenses/by/4.0/
+http://creativecommons.org/licenses/by/3.0/
+http://creativecommons.org/publicdomain/zero/1.0/
+
+
+-------- SR 2 old  fluids/*  hit/*  --------
+
+---- fluids/water*.wav  fluids/mud1.wav
+Name: large splashes
+Author: cgeffex    License: CC-BY-4.0    Date: June 5th, 2010
+https://freesound.org/people/CGEffex/sounds/98335/
+
+---- fluids/mud_cont.wav
+Name: water spigget onto mud 2
+Author: justinbw   License: CC-BY-4.0    Date: April 4th, 2009
+https://freesound.org/people/JustinBW/sounds/70207/
+April 4th, 2009
+
+---- fluids/water_cont.wav
+Name: water spigget onto mud 1
+Author: justinbw   License: CC-BY-4.0    Date: April 4th, 2009
+https://freesound.org/people/JustinBW/sounds/70206/
+
+
+---- hit/terrain*.wav  not used yet..
+Name: hit with dirt spray 1
+Author: Halleck    License: CC-BY-4.0    Date: June 1st, 2011
+https://freesound.org/people/Halleck/sounds/121643/
+
+---- hit/dirt*.wav
+Name: hit with dirt spray 1 body
+Author: Halleck    License: CC-BY-4.0    Date: June 1st, 2011
+https://freesound.org/people/Halleck/sounds/121642/
+
+Name: hit with dirt spray 2 body
+Author: Halleck    License: CC-BY-4.0    Date: June 1st, 2011
+https://freesound.org/people/Halleck/sounds/121644/
+
+Name: hit with dirt spray 3
+Author: Halleck    License: CC-BY-4.0    Date: June 1st, 2011
+https://freesound.org/people/Halleck/sounds/121645/
+
+
+------------  vehicle/*  engines  ------------
+
+Author: CryHam   License: CC-BY-4.0    Date: 24-12-2024
+All series:  *-n.wav   (e.g.:  su-*.wav)
+n = number: 1,2,3, etc (usually 8)  n *= 1000rpm
+
+New car engines recorded in engine-sim 0.1.14,
+https://github.com/Engine-Simulator/engine-sim-community-edition
+https://github.com/ange-yaghi/engine-sim
+
+at steady rpm values: 1000,2000,.. until last possible
+Then cut in Audacity and applied Curve EQ.
+More info in: https://github.com/stuntrally/stuntrally3/issues/7
+
+Curve EQ peaks at about for su-mid:
+50, 100, highest here: 183, 200 Hz, less: 400, 600, then: 2k-4k Hz
+// todo: put wav and presets into blendfiles repo..
+
+
+------------  vehicle/*  other  ------------
+
+---- boost.wav
+Name: Thruster_Level_II.aif
+Author: nathanshadow   License: CC Sampling Plus 1.0   Date: Sep 1st, 2006
+https://creativecommons.org/licenses/sampling+/1.0/
+https://freesound.org/people/nathanshadow/sounds/22455/
+
+
+---- turbo2.wav
+Author: CryHam
+made entirely in Audacity, from noise
+License: CC-0
+
+---- turbo3.wav  turbo3c.wav  turbo4,4c,5,6,7,8
+made by CryHam, using Curve EQ in Audacity, from:  
+Name: fuchslienshroud.wav
+Author: shimsewn    License: CC-BY-4.0    Date: Jan 13th, 2010
+https://freesound.org/people/shimsewn/sounds/87606/
+
+
+---- gear_shift
+gear_shift1.wav   from crash/01.wav
+gear_shift4a.wav  from crash/04.wav
+gear_shift4b.wav  from crash/04.wav
+
+
+---- propeller1.wav  propeller2.wav 
+Name: Prop Plane
+Author: Mozfoo    License: CC-0    Date: Sep 13th, 2018
+https://freesound.org/people/Mozfoo/sounds/440163/
+
+
+---- drone_q1.wav
+Name: spaceswamp.WAV
+Author: NoiseCollector    License: CC-BY-3.0    Date: Oct 12th, 2007
+https://freesound.org/people/NoiseCollector/sounds/42233/
+
+---- drone_q3.wav
+Name: specks.WAV
+Author: NoiseCollector    License: CC-BY-3.0    Date: Oct 12th, 2007
+https://freesound.org/people/NoiseCollector/sounds/42236/
+
+
+---- hover_r1.wav
+Name: VCR-internal2.wav
+Author: vacuumfan7072    License: CC-0    Date: Feb 12th, 2020
+https://freesound.org/people/vacuumfan7072/sounds/505702/
+
+---- hover_r2.wav
+Name: Electric Train Motor Idle
+Author: JotrainG    License: CC-0    Date: Aug 22nd, 2023
+https://freesound.org/people/JotrainG/sounds/700034/
+
+---- hover_r3.wav
+Name: fuchslienshroud.wav
+Author: shimsewn    License: CC-BY-4.0    Date: Jan 13th, 2010
+https://freesound.org/people/shimsewn/sounds/87606/
+
+
+---- hud*
+
+
+---- old sounds from VDrift:
+
+vehicle/bump_front*
+vehicle/bump_rear*
+surface/grass_*
+surface/gravel_*
+surface/tire_squeal_*
+vehicle/wind

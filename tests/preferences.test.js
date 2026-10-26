@@ -23,3 +23,7 @@ test('blocked browser storage does not break settings or lap completion',()=>{
 test('manual transmission preference survives reload and rejects invalid values',()=>{
  const s=storage();assert.equal(loadPreferences(s).transmission,'auto');savePreference(s,'transmission','manual');assert.equal(loadPreferences(s).transmission,'manual');savePreference(s,'transmission','broken');assert.equal(loadPreferences(s).transmission,'auto');
 });
+
+test('each car keeps separate personal bests on the same route',()=>{const s=storage();saveBestLap(s,'mountain',300,'apex');saveBestLap(s,'mountain',350,'brz');assert.equal(readBestLap(s,'mountain','brz'),350);assert.equal(readBestLap(s,'mountain','m3'),null);assert.equal(readBestLap(s,'mountain'),300);});
+
+test('garage cars have independent paint choices',()=>{const s=storage();savePreference(s,'car','brz');assert.equal(loadPreferences(s).paint,'#3f74d5');savePreference(s,'paint-brz','#abcdef');savePreference(s,'car','m3');assert.equal(loadPreferences(s).paint,'#e4e6e9');savePreference(s,'car','brz');assert.equal(loadPreferences(s).paint,'#abcdef');});

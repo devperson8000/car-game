@@ -1,6 +1,6 @@
 import {SampleEngine} from './engine-samples.js';
 // Engine worklet adapted by bwchoi from Antonio-R1's MIT waveguide model.
-// The default engine uses a CC BY 4.0 multi-RPM V8 sample bank.
+// Each car selects a CC BY 4.0 multi-RPM engine-sim sample bank.
 // Tire/road/wind/shift/impact layers and the fallback engine are synthesized.
 export class DrivingAudio{
   constructor(){this.ctx=null;this.muted=false;this.active=false;this.ready=false;this.lastGear=null;this.lastScrape=0;}
@@ -26,8 +26,8 @@ export class DrivingAudio{
     this.wind=noise('lowpass',700);this.road=noise('lowpass',240);this.scrub=noise('bandpass',650);this.rain=noise('highpass',1000);
     this.squeal=ctx.createOscillator();this.squeal.type='triangle';this.squeal.frequency.value=1400;
     this.squealGain=ctx.createGain();this.squealGain.gain.value=0;this.squeal.connect(this.squealGain);this.squealGain.connect(this.master);this.squeal.start();
-    try{this.sampleEngine=await SampleEngine.create(ctx,this.master);}
-    catch(e){console.warn('V8 samples unavailable; using synthesized engine:',e.message);}
+    try{this.sampleEngine=await SampleEngine.create(ctx,this.master,spec.audioBank);}
+    catch(e){console.warn('Engine samples unavailable; using synthesized engine:',e.message);}
     if(!this.sampleEngine){
       await ctx.audioWorklet.addModule(new URL('./vendor/engine-processor.js',import.meta.url));
       this.engine=new AudioWorkletNode(ctx,'engine-processor',{numberOfInputs:0,numberOfOutputs:1,outputChannelCount:[1],processorOptions:spec.engine_model});

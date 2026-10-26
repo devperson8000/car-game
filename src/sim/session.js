@@ -1,7 +1,7 @@
 import { Track } from '../vendor/track.js';
 import { routeData } from './routes.js';
 import { Vehicle, DT } from '../vendor/physics.js';
-import { SPEC } from './spec.js';
+import { getCar } from './cars.js';
 
 export class LapTimer {
   constructor(length, start=0) { this.length=length;this.completed=0;this.last=null;this.best=null;this.reset(start); }
@@ -26,8 +26,8 @@ export class LapTimer {
 }
 
 export class Session {
-  constructor(route='nordschleife') {
-    this.route=route;this.track=new Track(routeData(route));this.vehicle=new Vehicle(this.track,SPEC);
+  constructor(route='nordschleife',carId='apex') {
+    this.route=route;this.track=new Track(routeData(route));this.car=getCar(carId);this.vehicle=new Vehicle(this.track,this.car.spec);
     this.start=180;this.vehicle.reset(this.start);this.paused=false;
     this.accumulator=0;this.elapsed=0;this.reverseHold=0;this.laps=new LapTimer(this.track.total,this.vehicle.trackS);
   }
