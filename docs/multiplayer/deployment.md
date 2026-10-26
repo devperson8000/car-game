@@ -1,6 +1,6 @@
 # Running live multiplayer
 
-The Vite frontend stays on Vercel. Live lobbies require the separate persistent Node/WebSocket service in `server/`; Vercel's static deployment does not run this process. No public multiplayer endpoint has been deployed by these changes.
+The Vite frontend stays on Vercel. Live lobbies require the separate persistent Node/WebSocket service in `server/`; Vercel's static deployment does not run this process. The user-provided Northflank endpoint is configured in `.env.production`; see [Northflank setup](northflank.md). Deploy frontend and server from the same release commit on `main`.
 
 ## Local play and verification
 
@@ -11,7 +11,7 @@ npm run start:multiplayer   # port 3001
 npm run dev               # separate terminal; localhost uses ws://localhost:3001
 ```
 
-Open two browser windows, choose cars, open Multiplayer, create a lobby and share its code. Guests request access; only the owner can approve them. Pending guests receive no vehicle snapshots. Free Drive has independent player pausing and noncolliding cars. Race needs two connected ready drivers; the owner starts a five-second grid countdown. Server physics determines laps, finishing order and results. Owner can cancel/rematch. Recovery is disabled during an active race; leaving or disconnecting does not pause the other drivers. Membership can resume within 30 seconds, with ownership transferred when necessary.
+Open two browser windows, choose cars, open Multiplayer, create a lobby and share its code. Guests request access; only the owner can approve them. Pending guests receive no vehicle snapshots. Free Drive has independent player pausing and noncolliding cars. Race needs at least two drivers, with every listed entrant connected and ready; the owner starts a five-second grid countdown. Server physics determines laps, finishing order and results. Owner can cancel/rematch. Recovery is disabled during an active race; leaving or disconnecting does not pause the other drivers. A departure or interrupted connection during countdown cancels the grid and requires fresh readiness. Membership can resume within 30 seconds, with ownership transferred when necessary.
 
 ```sh
 npm test
@@ -20,8 +20,9 @@ npm run build
 npm run preview -- --port 4176
 # With the multiplayer service and preview running:
 TEST_URL=http://127.0.0.1:4176 npm run test:multiplayer:browser
-# UI-only test uses the Vite dev server:
+# Lightweight UI and real-controller reconnect tests use the Vite dev server:
 TEST_URL=http://127.0.0.1:5173 node tests/multiplayer-ui.mjs
+TEST_URL=http://127.0.0.1:5173 node tests/multiplayer-reconnect.mjs
 ```
 
 ## Render blueprint

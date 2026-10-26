@@ -4,7 +4,7 @@ Northflank can run the supplied persistent multiplayer service while Vercel serv
 
 No Northflank account or service is connected to this environment. The following is the concrete deployment configuration; do not paste API keys into chat.
 
-Create a **combined build and deployment service** from `devperson8000/car-game`, branch `codex/realism-upgrade`:
+Create a **combined build and deployment service** from `devperson8000/car-game`, branch `main`:
 
 | Setting | Value |
 |---|---|
@@ -31,4 +31,4 @@ Supply the public service URL (not credentials) to finish endpoint wiring. Hosti
 
 ## Configured service
 
-Public service supplied by the user: `https://p01--apex-multiplayer--yf5q7tyyggsr.code.run` (user confirmed a healthy HTTP response). `.env.production` sets its public WebSocket address for production builds. Existing Vercel environment variables take precedence; remove or update any older `VITE_MULTIPLAYER_URL`. Development still uses localhost unless explicitly configured. Live WebSocket verification from this workspace is blocked by its network policy; test from the deployed game origin.
+Public service supplied by the user: `https://p01--apex-multiplayer--yf5q7tyyggsr.code.run` (user confirmed a healthy HTTP response). `.env.production` sets its public WebSocket address for production builds. Existing Vercel environment variables take precedence; remove or update any older `VITE_MULTIPLAYER_URL`. Development still uses localhost unless explicitly configured. The public `/health` endpoint is reachable from this workspace. Browser gameplay is verified against a local copy of the service; test the deployed update from the Vercel origin after both services rebuild. Use `main` for both production services, or ensure the existing service branch includes the same release commit.

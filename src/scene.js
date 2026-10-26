@@ -97,6 +97,8 @@ export class DrivingScene{
       this.look.copy(this.desired).addScaledVector(f,30);this.look.y-=.15;
     }
     const snapCamera=this.snap;
+    // Mounted views share the chassis roll; chase keeps a comfortable horizon.
+    this.camera.up.set(0,1,0);if(driving&&this.cameraMode!==0)this.camera.up.applyQuaternion(orientation);
     if(this.snap||this.cameraMode!==0&&driving){this.camera.position.copy(this.desired);this.snap=false;}
     else this.camera.position.lerp(this.desired,1-Math.exp(-dt*7));
     if(driving&&this.cameraMode===0){if(snapCamera)this.smoothedLook.copy(this.look);else this.smoothedLook.lerp(this.look,1-Math.exp(-dt*10));this.camera.lookAt(this.smoothedLook);}else this.camera.lookAt(this.look);

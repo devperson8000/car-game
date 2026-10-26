@@ -1,4 +1,17 @@
 import {SampleEngine} from './engine-samples.js';
+// Contact and longitudinal slip matter as much as steering slip: airborne
+// wheels are silent, while a locked tire or a burnout can squeal in a straight line.
+export function tireSoundState(v){
+  const speed=Math.abs(v.speed),grounded=v.wheels.filter(w=>w.contact);
+  if(!grounded.length)return {road:0,scrub:0,squeal:0,pitch:1100};
+  let angle=0,longitudinal=0,treadSpeed=0,rough=0;
+  for(const w of grounded){angle=Math.max(angle,Math.abs(w.slipAngle||0));longitudinal=Math.max(longitudinal,Math.min(2,Math.abs(w.slipRatio||0)));treadSpeed=Math.max(treadSpeed,Math.abs((w.omega||0)*(w.radius||0)));rough+=w.surf===2?1:0;}
+  const motion=Math.min(1,Math.max(speed,treadSpeed)/10),contact=grounded.length/v.wheels.length;
+  return {road:Math.min(.13,speed*.0015)*(1+.8*rough/grounded.length)*contact,
+    scrub:Math.min(.2,Math.max(0,angle-.04)*.7+Math.max(0,longitudinal-.12)*.08)*motion*contact,
+    squeal:Math.min(.035,Math.max(0,angle-.08)*.15+Math.max(0,longitudinal-.2)*.02)*motion*contact,
+    pitch:1100+Math.min(1800,angle*2400+longitudinal*350)};
+}
 // Engine worklet adapted by bwchoi from Antonio-R1's MIT waveguide model.
 // Each car selects a CC BY 4.0 multi-RPM engine-sim sample bank.
 // Tire/road/wind/shift/impact layers and the fallback engine are synthesized.
@@ -51,11 +64,10 @@ export class DrivingAudio{
       set(this.engine.parameters.get('rpm'),v.rpm,.025);set(this.engine.parameters.get('throttle'),v.ctrl.throttle,.025);this.engine.parameters.get('redline').value=v.spec.engine.redline;
       set(this.engineGain.gain,.65+v.ctrl.throttle*.25);
     }
-    const speed=Math.abs(v.speed),slip=Math.max(...v.wheels.filter(w=>w.contact).map(w=>Math.abs(w.slipAngle)),0);
+    const speed=Math.abs(v.speed),tires=tireSoundState(v);
     set(this.wind.gain.gain,Math.min(.22,(speed/70)**2*.2));set(this.wind.filter.frequency,400+speed*12);
-    set(this.road.gain.gain,Math.min(.13,speed*.0015)*(v.onTrack?1:1.8));
-    set(this.scrub.gain.gain,Math.min(.2,Math.max(0,slip-.04)*.7)*Math.min(1,speed/8));
-    set(this.squealGain.gain,Math.min(.035,Math.max(0,slip-.08)*.15)*Math.min(1,speed/10));set(this.squeal.frequency,1100+Math.min(1800,slip*2400));
+    set(this.road.gain.gain,tires.road);set(this.scrub.gain.gain,tires.scrub);
+    set(this.squealGain.gain,tires.squeal);set(this.squeal.frequency,tires.pitch);
     set(this.rain.gain.gain,weather==='rain'?.05:0);
     if(this.lastGear!==null&&v.gear!==this.lastGear)this.burst(750,.16,.08);
     if(v.scrape>.2&&this.lastScrape<.1)this.burst(180,.3,.2);

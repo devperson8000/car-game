@@ -35,8 +35,8 @@ export class RoomEngine {
   ownerTransfer(room){const owner=room.players.get(room.ownerId);if(owner?.peer)return;room.ownerId=[...room.players.values()].find(p=>p.peer)?.id??room.players.keys().next().value??null;}
   remove(room,p){this.tokens.delete(p.token);room.players.delete(p.id);if(p.peer){const peer=this.peers.get(p.peer);if(peer)peer.member=null;this.send(p.peer,{type:'left'});}this.ownerTransfer(room);if(!room.players.size){for(const request of room.pending.values()){const peer=this.peers.get(request.peer);if(peer)peer.pending=null;this.send(request.peer,{type:'rejected',message:'Lobby closed'});}this.rooms.delete(room.code);}else this.broadcast(room);}
   clearPending(peer){if(!peer.pending)return;const room=this.rooms.get(peer.pending.code);room?.pending.delete(peer.pending.id);peer.pending=null;if(room)this.broadcast(room);}
-  disconnect(id){const peer=this.peers.get(id);if(!peer)return;this.clearPending(peer);if(peer.member){const{room,p}=peer.member;p.peer=null;p.disconnectedAt=this.now();p.controls=braking();p.parked=true;p.ready=false;if(p.framed&&!p.safety)this.resetInput(p);this.ownerTransfer(room);this.broadcast(room);}this.peers.delete(id);}
-  grid(room){this.globals(room);let i=0;for(const p of room.players.values()){this.resetInput(p,'grid');p.session=new Session(room.config.route,p.car);const v=p.session.vehicle;const s=room.config.mode==='free'?180-i*8:v.track.total-12-i*8;v.reset(s);v.auto=p.auto;p.session.laps=new LapTimer(v.track.total,v.trackS);p.session.laps.armed=false;p.controls=idle();p.parked=true;p.finished=false;p.finishTime=null;p.seq=-1;p.lastInput=0;p.ready=false;i++;}}
+  disconnect(id){const peer=this.peers.get(id);if(!peer)return;this.clearPending(peer);if(peer.member){const{room,p}=peer.member;if(room.phase==='countdown'&&room.countdownEntrants?.includes(p.id))room.countdownInterrupted=true;p.peer=null;p.disconnectedAt=this.now();p.controls=braking();p.parked=true;p.ready=false;if(p.framed&&!p.safety)this.resetInput(p);this.ownerTransfer(room);this.broadcast(room);}this.peers.delete(id);}
+  grid(room){room.countdownInterrupted=false;room.countdownEntrants=null;this.globals(room);let i=0;for(const p of room.players.values()){this.resetInput(p,'grid');p.session=new Session(room.config.route,p.car);const v=p.session.vehicle;const s=room.config.mode==='free'?180-i*8:v.track.total-12-i*8;v.reset(s);v.auto=p.auto;p.session.laps=new LapTimer(v.track.total,v.trackS);p.session.laps.armed=false;p.controls=idle();p.parked=true;p.finished=false;p.finishTime=null;p.seq=-1;p.lastInput=0;p.ready=false;i++;}}
   message(id,m){const peer=this.peers.get(id);if(!peer)return;try{if(!m||typeof m!=='object'||Array.isArray(m)||typeof m.type!=='string')throw Error('Invalid message');
     if(m.type==='protocol'){if(m.version!==2)throw Error('Unsupported protocol version');peer.protocolVersion=2;return;}
     if(m.type==='ping'){if(typeof m.clientTime!=='number'||!Number.isFinite(m.clientTime))throw Error('Invalid ping');this.send(id,{type:'pong',clientTime:m.clientTime,serverTime:this.now()});return;}
@@ -53,7 +53,7 @@ export class RoomEngine {
       case 'kick':{const target=room.players.get(m.playerId);if(!target||target===p)throw Error('Invalid player');this.remove(room,target);return;}
       case 'configure':{if(room.config.mode==='race'&&['countdown','running'].includes(room.phase))throw Error('Cancel the race before configuring');const next=config(m),preserve=room.config.mode==='free'&&next.mode==='free'&&room.config.route===next.route;room.config=next;room.roadHalf=routeData(room.config.route).roadHalf??4.5;room.phase=room.config.mode==='free'?'running':'lobby';room.countdownEndsAt=null;room.raceStartedAt=null;if(!preserve)this.grid(room);this.broadcast(room);return;}
       case 'ready':if(room.config.mode!=='race'||room.phase!=='lobby'||typeof m.ready!=='boolean')throw Error('Cannot change readiness now');p.ready=m.ready;this.broadcast(room);return;
-      case 'start':{const players=[...room.players.values()];if(room.config.mode!=='race'||room.phase!=='lobby'||players.filter(p=>p.peer).length<2||players.some(p=>!p.peer||!p.ready))throw Error('At least two connected, ready drivers are required');this.grid(room);room.phase='countdown';room.countdownEndsAt=this.now()+5000;this.broadcast(room);return;}
+      case 'start':{const players=[...room.players.values()];if(room.config.mode!=='race'||room.phase!=='lobby'||players.filter(p=>p.peer).length<2)throw Error('At least two connected, ready drivers are required');if(players.some(p=>!p.peer))throw Error('Wait for disconnected drivers to reconnect or remove them before starting');if(players.some(p=>!p.ready))throw Error('Every driver must be ready before starting');this.grid(room);room.countdownEntrants=players.map(p=>p.id);room.phase='countdown';room.countdownEndsAt=this.now()+5000;this.broadcast(room);return;}
       case 'cancel':if(room.config.mode!=='race')throw Error('No race to cancel');room.phase='lobby';room.countdownEndsAt=null;room.raceStartedAt=null;this.grid(room);this.broadcast(room);return;
       case 'input':{
         if(peer.protocolVersion===2&&Number.isSafeInteger(m.epoch)&&m.epoch!==p.inputEpoch)return;
@@ -79,7 +79,10 @@ export class RoomEngine {
     for(const p of [...room.players.values()])if(!p.peer&&now-p.disconnectedAt>=GRACE)this.remove(room,p);
     if(!this.rooms.has(room.code))continue;
     for(const request of [...room.pending.values()])if(now-request.createdAt>60000){room.pending.delete(request.id);const peer=this.peers.get(request.peer);if(peer)peer.pending=null;this.send(request.peer,{type:'rejected',message:'Request expired'});this.broadcast(room);}
-    if(room.phase==='countdown'&&now>=room.countdownEndsAt){room.phase='running';room.raceStartedAt=room.countdownEndsAt;room.countdownEndsAt=null;for(const p of room.players.values())this.resetInput(p,'running');this.broadcast(room);}
+    // The ready grid is valid only while every entrant remains connected.
+    // Check before the deadline, including a leave on the final countdown tick.
+    if(room.phase==='countdown'&&(room.countdownInterrupted||room.players.size<2||(room.countdownEntrants??[...room.players.keys()]).some(id=>!room.players.get(id)?.peer))){room.phase='lobby';room.countdownEndsAt=null;room.raceStartedAt=null;this.grid(room);this.broadcast(room);}
+    if(room.phase==='countdown'&&now>=room.countdownEndsAt){room.phase='running';room.raceStartedAt=room.countdownEndsAt;room.countdownEndsAt=null;room.countdownEntrants=null;for(const p of room.players.values())this.resetInput(p,'running');this.broadcast(room);}
     this.globals(room);
     for(const p of room.players.values()){
       const race=room.config.mode==='race',v2=p.framed||this.peers.get(p.peer)?.protocolVersion===2;
@@ -92,7 +95,7 @@ export class RoomEngine {
         if(!safe&&p.framed){p.simulationBudget=Math.min(.12,p.simulationBudget+Math.max(0,Math.min(.12,Number.isFinite(dt)?dt:0)));while(p.pendingFrames.length&&p.simulationBudget+1e-10>=INPUT_DT){const f=p.pendingFrames.shift();applyInputFrame(p.session,f);p.lastProcessedFrame=f.seq;p.simulationBudget=Math.max(0,p.simulationBudget-INPUT_DT);}}
         else if(safe&&p.framed){const v=p.session.vehicle,auto=v.auto;v.auto=false;p.session.reverseHold=0;if(v.gear===-1)v.gear=1;p.session.advance(Math.max(0,Math.min(.12,dt)),braking());v.auto=auto;}
       }else{
-        if(room.phase==='countdown'||room.phase==='finished')continue;
+        if(room.phase==='countdown'||room.phase==='finished'||(race&&room.phase==='lobby'))continue;
         if(safe&&(!race||room.phase==='lobby')){p.session.vehicle.ctrl=idle();p.session.vehicle.vel.set(0,0,0);p.session.vehicle.angVel.set(0,0,0);p.session.vehicle.rpm=p.session.vehicle.spec.engine.idle;for(const w of p.session.vehicle.wheels)w.omega=0;p.session.accumulator=0;continue;}
         const v=p.session.vehicle;
         if(safe){const auto=v.auto;v.auto=false;p.session.reverseHold=0;if(v.gear===-1)v.gear=1;p.session.advance(dt,braking());v.auto=auto;}else p.session.advance(dt,p.controls);

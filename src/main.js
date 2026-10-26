@@ -105,7 +105,7 @@ async function bootstrap(){
     await loadingScreen.finish();
     launchRegions.forEach(region=>region.inert=false);
     loaded=true;$('drive').disabled=false;$('drive').querySelector('span').textContent='START YOUR ENGINE';hud.update();
-    multiplayer=new MultiplayerController({session,view,input,storage,car:selectedCar,paint:preferences.paint,callbacks:{notify,isDriving:()=>started&&!paused,pause:()=>pause(true),resume:()=>pause(false),enter:()=>startDrive(),leave:()=>{session.reset();completedLaps=0;pause(true);hud.update();}}});
+    multiplayer=new MultiplayerController({session,view,input,storage,car:selectedCar,paint:preferences.paint,callbacks:{notify,isDriving:()=>started&&!paused,pause:()=>pause(true),resume:()=>pause(false),enter:()=>startDrive(),leave:()=>{session.reset();session.laps.best=readBestLap(storage,route,selectedCar.id);completedLaps=0;pause(true);hud.update();}}});
     $('loading-status').textContent='Ready. Press W / ↑ or click Start your engine.';
     view.renderer.domElement.addEventListener('pointerdown',()=>{if(!$('help-dialog').open&&(!started||paused))startDrive();});
   }catch(e){console.error(e);$('loading-status').textContent=/WebGL|context/i.test(e.message)?'WebGL 2 is required. Enable hardware acceleration or try another browser.':'Unable to load the simulator. Check your connection and retry.';$('loading-status').classList.add('error');$('retry').hidden=false;$('load-percent').textContent='';loadingScreen.fail($('loading-status').textContent);}

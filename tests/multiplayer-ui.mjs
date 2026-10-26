@@ -25,24 +25,44 @@ try {
   await page.evaluate(room => ui.setRoom(room, 'one'), room);
   assert.equal(await page.locator('.mp-player b').count(), 0);
   assert.equal(await page.getByRole('button', { name: 'Start race', exact: true }).isDisabled(), true);
-  await page.getByRole('button', { name: 'Approve', exact: true }).click();
+  await page.evaluate(room => ui.setRoom({...room,players:[...room.players.map(p=>({...p,ready:true})),{id:'rejoining',name:'Rejoining',car:'brz',connected:false,ready:false}]},'one'),room);
+  assert.equal(await page.getByRole('button',{name:'Start race',exact:true}).isDisabled(),true,'a reconnecting entrant must keep the grid locked');
+  await page.evaluate(room => ui.setRoom(room,'one'),room);
+  await page.locator('select[name=weather]').selectOption('golden');
+  await page.evaluate(room => ui.setRoom({...room, pendingRequests:[...room.pendingRequests,{id:'new',name:'Another driver',car:'apex'}]}, 'one'), room);
+  assert.equal(await page.locator('select[name=weather]').inputValue(), 'golden', 'unrelated join requests must preserve host settings draft');
+  await page.getByRole('button', { name: 'Approve', exact: true }).first().click();
   assert.deepEqual((await page.evaluate(() => events.at(-1))).data, { requestId: 'pending', accept: true });
+  await page.evaluate(room => ui.setRoom({...room, config:{...room.config,weather:'day'}}, 'one'), room);
+  assert.equal(await page.locator('select[name=weather]').inputValue(), 'day', 'authoritative settings must replace the local draft');
+  await page.evaluate(room => {ui.setRoom({...room,phase:'running'}, 'one');ui.setRoom({...room,phase:'running'}, 'one');}, room);
+  assert.equal(await page.locator('select[name=mode]').inputValue(), 'race', 'disabled race settings retain server configuration');
+  assert.equal(await page.locator('select[name=weather]').inputValue(), 'rain');
   await page.setViewportSize({ width: 390, height: 844 });
   assert.equal(await page.locator('#multiplayer-dialog').evaluate(d => d.scrollWidth <= d.clientWidth), true);
   await page.keyboard.press('Escape');
   assert.equal(await page.locator('#multiplayer-dialog').evaluate(d => d.open), false);
-  assert.equal(await page.evaluate(() => events.at(-1).name), 'onClose');
+  await page.waitForFunction(() => events.at(-1).name === 'onClose');
   await page.evaluate(() => { ui.setAvailable(false); ui.open(); });
   assert.match(await page.locator('.mp-content').innerText(), /not connected to a live multiplayer server/);
   await page.evaluate(async()=>{
     ui.dialog.remove();ui.openButton.remove();
     for(const id of ['car-select','route','lighting','paint','gearbox']){const input=document.createElement('select');input.id=id;document.body.append(input);}
     const {MultiplayerController}=await import('/src/multiplayer/controller.js');const {Session}=await import('/src/sim/session.js');
-    let leaves=0;const controller=new MultiplayerController({session:new Session('mountain'),view:{},input:{clear(){}},storage:null,car:{id:'apex'},paint:'#112233',callbacks:{isDriving:()=>false,pause(){},resume(){},enter(){},leave(){leaves++;}}});
+    let leaves=0,resumes=0;const controller=new MultiplayerController({session:new Session('mountain'),view:{weather:'day'},input:{clear(){}},storage:null,car:{id:'apex'},paint:'#112233',callbacks:{isDriving:()=>false,pause(){},resume(){resumes++;},enter(){},leave(){leaves++;}}});
+    controller.joined=true;controller.entered=true;controller.wasDriving=true;controller.client.connected=true;controller.ui.callbacks.onClose();
+    if(resumes!==1)throw Error('Closing multiplayer while online must resume the previous drive');
+    controller.wasDriving=true;controller.client.connected=false;controller.ui.callbacks.onClose();
+    if(resumes!==1)throw Error('Closing disconnected lobby must not resume driving');
+    controller.joined=false;controller.wasDriving=false;
+    controller.protocol=2;controller.message({type:'hello'});if(controller.protocol!==1)throw Error('Legacy hello must reset negotiated protocol after reconnect');
+    controller.snapshot={phase:'finished'};controller.ownFinished=true;controller.selfId='previous';controller.message({type:'joined',selfId:'current',token:'new-token',room:{code:'NEW',name:'New session',ownerId:'current',config:{mode:'free',route:'mountain',weather:'day',laps:1},phase:'running',players:[{id:'current',car:'apex',name:'Driver',connected:true}]}});
+    if(controller.snapshot!==null||controller.ownFinished)throw Error('Joining must discard previous snapshot and finish state');
+    controller.clear();leaves=0;
     controller.message({type:'rejected',message:'Declined'});if(leaves!==0)throw Error('Rejected guest must keep solo session');
     controller.joined=true;controller.message({type:'left'});if(leaves!==1)throw Error('Accepted member must return to solo');
     controller.joined=true;controller.message({type:'error',message:'Session expired'});if(controller.joined||leaves!==2)throw Error('Expired reconnect must restore solo controls');
     controller.inputPump.stop();clearInterval(controller.predictionTimer);controller.client.disconnect();
   });
-  console.log('Multiplayer UI passed: create/join payloads, safe names, host approval, ready gate, mobile overflow, Escape and offline state.');
+  console.log('Multiplayer UI passed: create/join payloads, safe names, host approval, ready gate, settings drafts, online close/resume, mobile overflow, Escape and offline state.');
 } finally { await browser.close(); }

@@ -78,6 +78,10 @@ export class LobbyUI {
   setLobbies(lobbies) { this.lobbies = Array.isArray(lobbies) ? lobbies : []; if (!this.room && !this.pending) this._renderBrowser(); }
   setPending(code) { this.pending = code; this.room = null; this.setError(''); this._render(); }
   setRoom(room, selfId) {
+    // Membership/ready updates must not discard the host's unsubmitted setup.
+    const sameSetup = room && this.room?.code === room.code && this.selfId === selfId && room.ownerId === selfId && JSON.stringify(this.room.config) === JSON.stringify(room.config);
+    const editable = room && (room.phase === 'lobby' || room.config.mode === 'free');
+    this.configDraft = sameSetup && editable && this.configEditable && this.configForm?.isConnected ? { ...values(this.configForm), laps: Number(this.configForm.elements.laps.value) } : null;
     this.room = room; this.selfId = selfId; this.pending = null; this.setError(''); this._render();
   }
   _render() {
@@ -177,9 +181,10 @@ export class LobbyUI {
       }
     }
     const settings = el('section', 'mp-card'); settings.append(el('h3', '', 'Session settings'));
-    const form = el('form', 'mp-form'); this._configFields(form, room.config);
+    const form = this.configForm = el('form', 'mp-form'); this._configFields(form, this.configDraft || room.config);
     const editable = owner && (room.phase === 'lobby' || room.config.mode === 'free');
-    for (const input of form.querySelectorAll('select')) input.disabled = !editable || (input.name === 'laps' && room.config.mode === 'free');
+    this.configEditable = editable;
+    for (const input of form.querySelectorAll('select')) input.disabled = !editable || (input.name === 'laps' && form.elements.mode.value === 'free');
     // Mode changes must enable race laps when the host switches from free drive.
     form.elements.mode.addEventListener('change', () => { form.elements.laps.disabled = !editable || form.elements.mode.value === 'free'; });
     if (editable) form.append(button('Apply settings', () => this._call('onConfigure', { ...values(form), laps: Number(form.elements.laps.value) })));
@@ -192,16 +197,15 @@ export class LobbyUI {
       const ready = button(self?.ready ? 'Unready' : 'Ready to race', () => this._call('onReady', { ready: !self?.ready }));
       ready.setAttribute('aria-pressed', String(!!self?.ready)); actions.append(ready);
       if (owner) {
-        const connected = room.players.filter(player => player.connected);
         const start = button('Start race', () => this._call('onStart'), 'mp-primary');
-        start.disabled = connected.length < 2 || !connected.every(player => player.ready);
+        start.disabled = room.players.length < 2 || !room.players.every(player => player.connected && player.ready);
         actions.append(start);
       }
     }
     if (owner && room.config.mode === 'race' && room.phase !== 'lobby') actions.append(button(room.phase === 'finished' ? 'Rematch / return to lobby' : 'Cancel race', () => this._call('onCancel')));
     actions.append(button('Enter track ↗', () => this._call('onEnter'), 'mp-primary'), button('Leave lobby', () => this._call('onLeave'), 'mp-subtle'));
     this.content.append(actions);
-    if (room.config.mode === 'race' && room.phase === 'lobby') this.content.append(el('p', 'mp-muted', 'Race starts when at least two connected drivers are ready. The host launches the countdown.'));
+    if (room.config.mode === 'race' && room.phase === 'lobby') this.content.append(el('p', 'mp-muted', 'At least two drivers are needed. Every listed driver must be connected and ready before the host starts the countdown. Wait for reconnecting drivers or remove them from the lobby.'));
   }
   _phaseText(state) {
     if (!this.phase) return;
