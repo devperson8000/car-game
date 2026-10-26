@@ -28,3 +28,7 @@ Once Northflank assigns the public hostname:
 4. From two devices, create a lobby, request to join, approve the guest, and enter Free Drive. Then test Race readiness/countdown.
 
 Supply the public service URL (not credentials) to finish endpoint wiring. Hosting charges and plan choice stay under the account owner's control. Service restarts end in-memory sessions; keep one instance until shared room routing/persistence is implemented. See [deployment.md](deployment.md) for local verification and current behavior.
+
+## Configured service
+
+Public service supplied by the user: `https://p01--apex-multiplayer--yf5q7tyyggsr.code.run` (user confirmed a healthy HTTP response). `.env.production` sets its public WebSocket address for production builds. Existing Vercel environment variables take precedence; remove or update any older `VITE_MULTIPLAYER_URL`. Development still uses localhost unless explicitly configured. Live WebSocket verification from this workspace is blocked by its network policy; test from the deployed game origin.
