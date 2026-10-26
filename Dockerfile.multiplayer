@@ -1,0 +1,14 @@
+FROM node:24-bookworm-slim
+WORKDIR /app
+ENV NODE_ENV=production
+COPY --chown=node:node package.json package-lock.json ./
+RUN --mount=type=secret,id=proxy_ca \
+    if [ -f /run/secrets/proxy_ca ]; then export NODE_EXTRA_CA_CERTS=/run/secrets/proxy_ca; fi; \
+    npm ci --omit=dev --ignore-scripts --strict-ssl=true
+COPY --chown=node:node server ./server
+COPY --chown=node:node src/sim ./src/sim
+COPY --chown=node:node src/vendor ./src/vendor
+USER node
+ENV PORT=3001
+EXPOSE 3001
+CMD ["node", "server/index.js"]
